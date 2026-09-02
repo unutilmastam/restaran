@@ -9,8 +9,8 @@
 | 3 | Customer PWA | ✅ Tugadi | NFC → guest count → menyu → cart · PWA · **55.6 KB gz** (chegara 100) · 14 backend + 14 frontend test |
 | 4 | Session tizimi | ✅ Tugadi | `SessionService`, `customer_token` (sha256), `session_devices`, NFC kirish logikasi · 15 feature + 3 concurrency test |
 | 5 | Order tizimi | ✅ Tugadi | Narx qayta hisoblash · idempotency · DRAFT · order lock · `order_number` · snapshot · status ekrani (polling 5s) · 22 feature + 3 concurrency test |
-| 6 | Admin panel | ⬜ Keyingi | |
-| 6.5 | Obuna nazorati | ⬜ | `CheckSubscription`, grace period 3 kun |
+| 6 | Admin panel | ✅ Tugadi | Sanctum auth · dashboard · order qabul · menyu/stol/xodim CRUD · ImageService (webp 800px) · limitlar · 30 test |
+| 6.5 | Obuna nazorati | ⬜ Keyingi | `CheckSubscription`, grace period 3 kun |
 | 7 | Waiter PWA | ⬜ | |
 | 8 | Auto assignment | ⬜ | |
 | 9 | Real-time (Pusher) | ⬜ | |
@@ -65,3 +65,8 @@
 | 2026-09-02 | `orders.comment` → **`orders.note`** (255) | Foydalanuvchi belgiladi; migration hali deploy qilinmagan edi |
 | 2026-09-02 | `firstOrCreate` **atomar emas** — `order_counters` da try/catch | Kunning birinchi parallel buyurtmalari unique xatoga tushardi |
 | 2026-09-02 | Customer polling **5 sek**, `is_final` da to'xtaydi | Batareya va traffik; WebSocket ishlatilmaydi |
+| 2026-09-02 | DRAFT egaligi **`orders.created_by_token_hash`** | Bir stolda 2 telefon 2 draft qoldirsa aralashmasin |
+| 2026-09-02 | `openSession` **WAITING_PAYMENT sessionga ULAMAYDI** | Yangi mijoz ketayotgan mijozning hisobini ko'rardi — sizib chiqish |
+| 2026-09-02 | Sanctum uchun **custom `PersonalAccessToken`** | `User` global scope'i token yechishga to'sqinlik qilardi (har so'rov 401) |
+| 2026-09-02 | Rasm **800px** (1200 emas) | Foydalanuvchi belgiladi |
+| 2026-09-02 | `errorText()` helperi | Tarmoq xatosida server matni yo'q — bo'sh qizil quti ko'rinardi |

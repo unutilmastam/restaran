@@ -49,9 +49,23 @@ return new class extends Migration
             // Mijoz izohi ("achchiq qilmang").
             $table->string('note', 255)->nullable();
 
-            // DRAFT muddati (javob 7: 120 daqiqa). Muddati o'tgani EXPIRED
-            // bo'ladi — uzoq turgan cart to'lovdan keyin "tirilib" ketmasin.
+            // DRAFT muddati (30 daqiqa). Muddati o'tgani EXPIRED bo'ladi —
+            // uzoq turgan cart to'lovdan keyin "tirilib" ketmasin.
             $table->dateTime('draft_expires_at')->nullable();
+
+            /*
+             * DRAFT ni YARATGAN qurilma tokeni (sha256).
+             *
+             * DRAFT hali sessionga bog'lanmagan (`session_id = null`),
+             * shuning uchun uni "stol bo'yicha" ko'rsatib bo'lmaydi: bitta
+             * stolda ikki telefon draft qoldirsa, har biri ikkinchisining
+             * buyurtmasini ko'rardi va to'lovdan keyin summalar aralashardi.
+             *
+             * Ko'rish HUQUQI faqat shu hash orqali. To'lovdan keyin draft
+             * yangi sessionga o'tganda, shu token `session_devices` ga
+             * qo'shiladi (PHASE 12).
+             */
+            $table->char('created_by_token_hash', 64)->nullable();
 
             $table->dateTime('accepted_at')->nullable();
             $table->dateTime('assigned_at')->nullable();
@@ -70,6 +84,7 @@ return new class extends Migration
             $table->index(['waiter_id', 'status']);
             // DRAFT larni stol bo'yicha topish (to'lovdan keyin biriktirish).
             $table->index(['table_id', 'status']);
+            $table->index('created_by_token_hash');
         });
     }
 

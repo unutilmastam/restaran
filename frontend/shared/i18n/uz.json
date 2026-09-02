@@ -75,7 +75,18 @@
     "avg_check": "O'rtacha chek",
     "guests": "Mijozlar",
     "login": "Kirish",
-    "logout": "Chiqish"
+    "logout": "Chiqish",
+    "login_title": "Admin panel",
+    "username": "Login",
+    "password": "Parol",
+    "accept": "Qabul qilish",
+    "cancel_order": "Bekor qilish",
+    "no_orders": "Yangi buyurtma yo'q",
+    "today": "Bugun",
+    "table_free": "Bo'sh",
+    "limits": "Limitlar",
+    "logout_confirm": "Chiqasizmi?",
+    "pending_orders": "Kutilayotgan"
   },
   "table_status": {
     "available": "Bo'sh",

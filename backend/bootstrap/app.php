@@ -28,6 +28,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(prepend: [
             \App\Http\Middleware\SetLocale::class,
         ]);
+
+        $middleware->alias([
+            'role' => \App\Http\Middleware\EnsureRole::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // API javoblari HAR DOIM bitta konvertda qaytadi (docs/01 §9):

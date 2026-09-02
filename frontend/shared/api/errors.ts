@@ -40,3 +40,23 @@ export function isApiError(error: unknown): error is ApiError {
 export function hasErrorCode(error: unknown, code: ErrorCode): boolean {
   return isApiError(error) && error.code === code;
 }
+
+/**
+ * Foydalanuvchiga ko'rsatiladigan matn.
+ *
+ * ⚠️ Server matni HAR DOIM ham bo'lmaydi: tarmoq uzilganda yoki javob
+ * konvertga mos kelmaganda (`NETWORK_ERROR`, `SERVER_ERROR`) `ApiError`
+ * bo'sh xabar bilan yaratiladi. Bunday holda matn FRONTEND lug'atidan
+ * olinadi, aks holda foydalanuvchi BO'SH qizil quti ko'radi.
+ */
+export function errorText(
+  error: unknown,
+  locale: Locale,
+  translate: (key: string) => string,
+): string {
+  if (!isApiError(error)) return translate('errors.SERVER_ERROR');
+
+  const fromServer = error.localized(locale);
+
+  return fromServer.trim() !== '' ? fromServer : translate(`errors.${error.code}`);
+}

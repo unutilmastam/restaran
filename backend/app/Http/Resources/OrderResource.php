@@ -34,6 +34,15 @@ class OrderResource extends JsonResource
                 'subtotal' => $item->subtotal,
                 'note' => $item->note,
             ])),
+            // Admin ro'yxatida stol raqami kerak; customer oqimida bu
+            // relation yuklanmaydi, shuning uchun `whenLoaded`.
+            'table' => $this->whenLoaded('table', fn (): array => [
+                'number' => $this->table->number,
+                'name' => $this->table->name,
+            ]),
+            'waiter' => $this->whenLoaded('waiter', fn (): ?array => $this->waiter === null
+                ? null
+                : ['name' => $this->waiter->name]),
             'created_at' => $this->created_at?->toIso8601String(),
             'delivered_at' => $this->delivered_at?->toIso8601String(),
             // Frontend polling'ni shu bo'yicha to'xtatadi.

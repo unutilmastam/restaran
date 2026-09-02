@@ -168,6 +168,9 @@ return [
     ],
 
     'attributes' => [
+        'name_uz' => 'Название (UZ)',
+        'name_ru' => 'Название (RU)',
+        'price' => 'Цена',
         'client_order_uuid' => 'Идентификатор заказа',
         'items' => 'Товары',
         'guest_count' => 'Количество гостей',

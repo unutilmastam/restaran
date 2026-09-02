@@ -9,6 +9,7 @@ use App\Enums\SessionStatus;
 use App\Exceptions\BusinessException;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\SessionDevice;
 use App\Models\Table;
 use App\Models\TableSession;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -41,8 +42,9 @@ class OrderService
         array $items,
         ?TableSession $session = null,
         ?string $note = null,
+        ?string $customerToken = null,
     ): Order {
-        return DB::transaction(function () use ($table, $clientOrderUuid, $items, $session, $note): Order {
+        return DB::transaction(function () use ($table, $clientOrderUuid, $items, $session, $note, $customerToken): Order {
             // 2. Idempotency: shu uuid bilan order allaqachon bormi?
             //    (CLAUDE.md §3.1 — tugmani ikki marta bosish 1 ta order)
             $existing = $this->findByClientUuid($table->restaurant_id, $clientOrderUuid);
@@ -70,7 +72,9 @@ class OrderService
             $lines = $this->resolveLines($items);
 
             // 8. Order va order_items.
-            $order = $this->persist($table, $session, $clientOrderUuid, $lines, $isDraft, $note);
+            $order = $this->persist(
+                $table, $session, $clientOrderUuid, $lines, $isDraft, $note, $customerToken,
+            );
 
             // 9. Session summasi yangilanadi (draft session'ga tegmaydi).
             if (! $isDraft && $session !== null) {
@@ -141,6 +145,15 @@ class OrderService
                 'business_date' => $numbering['business_date'],
                 'order_number' => $numbering['order_number'],
             ] + $this->totals($lines))->save();
+
+            // Draftni yaratgan qurilma endi YANGI sessionning a'zosi —
+            // shu bilan mijoz o'z buyurtmasini kuzatishda davom etadi.
+            if ($draft->created_by_token_hash !== null) {
+                SessionDevice::firstOrCreate(
+                    ['customer_token_hash' => $draft->created_by_token_hash],
+                    ['table_session_id' => $session->id, 'last_seen_at' => now()],
+                );
+            }
 
             $this->refreshSessionTotal($session);
             $this->tableStatus->recalculate($session->table);
@@ -246,6 +259,7 @@ class OrderService
         array $lines,
         bool $isDraft,
         ?string $note,
+        ?string $customerToken,
     ): Order {
         $numbering = $this->numbers->next($table->restaurant);
 
@@ -262,6 +276,11 @@ class OrderService
             'note' => $note,
             'draft_expires_at' => $isDraft
                 ? now()->addMinutes(config('smart_restaurant.draft_ttl_minutes'))
+                : null,
+            // DRAFT ni faqat uni YARATGAN qurilma ko'radi. Sessionli
+            // orderda kerak emas — u sessionga bog'langan.
+            'created_by_token_hash' => $isDraft && $customerToken !== null
+                ? SessionDevice::hashToken($customerToken)
                 : null,
         ] + $this->totals($lines);
 

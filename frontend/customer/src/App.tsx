@@ -85,19 +85,37 @@ export default function App() {
     };
   }, [route, loadCart]);
 
-  /** Session ochish yoki mavjudiga ulanish (PHASE 4). */
+  /**
+   * Session ochish yoki mavjudiga ulanish (PHASE 4).
+   *
+   * Stol WAITING_PAYMENT bo'lsa server 409 beradi va DRAFT tokeni
+   * qaytaradi — mijoz ketayotgan mijozning sessioniga ULANMAYDI,
+   * lekin o'z draftini kuzata olishi uchun token kerak (docs/01 §12).
+   */
   const ensureSession = useCallback(
     async (guestCount: number) => {
       if (route === null) return;
 
       if (readCustomerToken(route.nfcToken) !== null) return;
 
-      const { data } = await api.post<{ customer_token: string }>(
-        tablePath(route, '/sessions'),
-        { guest_count: guestCount },
-      );
+      try {
+        const { data } = await api.post<{ customer_token: string }>(
+          tablePath(route, '/sessions'),
+          { guest_count: guestCount },
+        );
 
-      writeCustomerToken(route.nfcToken, data.customer_token);
+        writeCustomerToken(route.nfcToken, data.customer_token);
+      } catch (caught) {
+        if (hasErrorCode(caught, 'SESSION_WAITING_PAYMENT')) {
+          const draftToken = (caught as { data?: { draft_token?: string } }).data?.draft_token;
+
+          if (typeof draftToken === 'string') writeCustomerToken(route.nfcToken, draftToken);
+
+          return;
+        }
+
+        throw caught;
+      }
     },
     [route],
   );
@@ -126,7 +144,21 @@ export default function App() {
         setStep('status');
       } catch (caught) {
         if (hasErrorCode(caught, 'SESSION_WAITING_PAYMENT')) {
-          // Order draft sifatida saqlandi — mijoz kutadi (docs/01 §12).
+          // Order DRAFT sifatida saqlandi — mijoz kutadi (docs/01 §12).
+          // Server bergan token draftning yagona kaliti: uni saqlamasak
+          // mijoz o'z buyurtmasini boshqa ko'ra olmaydi.
+          const payload = (caught as { data?: { customer_token?: string; draft_order_id?: number } })
+            .data;
+
+          if (route !== null && typeof payload?.customer_token === 'string') {
+            writeCustomerToken(route.nfcToken, payload.customer_token);
+          }
+
+          if (typeof payload?.draft_order_id === 'number') {
+            clearCart();
+            setOrderId(payload.draft_order_id);
+          }
+
           setBlockedReason('SESSION_WAITING_PAYMENT');
         } else if (isApiError(caught)) {
           setBlockedReason(caught.code);

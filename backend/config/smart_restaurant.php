@@ -26,7 +26,7 @@ return [
 
     // Rasm yuklash limitlari — 1 GB disk byudjeti (docs/05 §0).
     'image' => [
-        'max_width' => (int) env('SR_IMAGE_MAX_WIDTH', 1200),
+        'max_width' => (int) env('SR_IMAGE_MAX_WIDTH', 800),
         'max_kb' => (int) env('SR_IMAGE_MAX_KB', 300),
         'format' => env('SR_IMAGE_FORMAT', 'webp'),
         'mimes' => ['image/jpeg', 'image/png', 'image/webp'],

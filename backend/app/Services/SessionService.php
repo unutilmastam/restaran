@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\SessionStatus;
 use App\Enums\TableStatus;
+use App\Exceptions\BusinessException;
 use App\Models\SessionDevice;
 use App\Models\Table;
 use App\Models\TableSession;
@@ -71,10 +72,10 @@ class SessionService
             // 1-qatlam: stol qatorini qulflaymiz.
             Table::query()->whereKey($table->id)->lockForUpdate()->first();
 
-            $session = $this->findActiveSession($table);
+            $session = $this->findActiveSession($table, locking: true);
 
-            if ($session !== null) {
-                // Mavjud sessionga YANGI QURILMA ulanadi (javob 9):
+            if ($session !== null && $session->status === SessionStatus::ACTIVE) {
+                // Mavjud ACTIVE sessionga YANGI QURILMA ulanadi (javob 9):
                 // bir stolda bir necha telefon bitta hisobni bo'lishadi.
                 // Xato emas — 200 qaytadi.
                 return [
@@ -82,6 +83,20 @@ class SessionService
                     'token' => $this->attachDevice($session),
                     'created' => false,
                 ];
+            }
+
+            if ($session !== null) {
+                /*
+                 * WAITING_PAYMENT — bu KETAYOTGAN mijozning hisobi.
+                 *
+                 * ⚠️ Yangi mijoz unga ULANMAYDI. Aks holda u
+                 * `/sessions/me` orqali begona buyurtmalar va summani
+                 * ko'rardi. O'rniga mijozga DRAFT tokeni beriladi:
+                 * u faqat o'z draftini ko'radi (docs/01 §12).
+                 */
+                throw new BusinessException('SESSION_WAITING_PAYMENT', 409, [
+                    'draft_token' => $this->issueDraftToken(),
+                ]);
             }
 
             try {
@@ -140,6 +155,27 @@ class SessionService
 
             return $session->refresh();
         });
+    }
+
+    /**
+     * DRAFT uchun token — sessionga bog'lanmagan.
+     *
+     * `session_devices` ga YOZILMAYDI (u yerda session FK majburiy).
+     * Faqat `orders.created_by_token_hash` da yashaydi; to'lovdan keyin
+     * yangi sessionga o'tganda qurilma sifatida qo'shiladi (PHASE 12).
+     */
+    public function issueDraftToken(): string
+    {
+        return Str::random(self::TOKEN_LENGTH);
+    }
+
+    /** Qurilmani mavjud sessionga biriktiradi — draft chiqqanda (PHASE 12). */
+    public function attachToken(TableSession $session, string $token): void
+    {
+        SessionDevice::firstOrCreate(
+            ['customer_token_hash' => SessionDevice::hashToken($token)],
+            ['table_session_id' => $session->id, 'last_seen_at' => now()],
+        );
     }
 
     /** Token bo'yicha qurilmani topish — hash orqali (docs/05 §2.3). */

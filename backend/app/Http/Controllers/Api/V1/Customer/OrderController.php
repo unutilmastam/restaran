@@ -11,6 +11,7 @@ use App\Http\Requests\CreateOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\Table;
+use App\Models\TableSession;
 use App\Services\OrderService;
 use App\Services\SessionService;
 use App\Support\ApiResponse;
@@ -49,12 +50,27 @@ class OrderController extends Controller
 
         $session = $this->sessions->findActiveSession($table);
 
+        // Mijozning tokeni bo'lmasa (WAITING_PAYMENT stolda session
+        // ochilmaydi) draft uchun yangisi beriladi.
+        $customerToken = $request->header('X-Customer-Token');
+        $issuedToken = null;
+
+        if (! is_string($customerToken) || $customerToken === '') {
+            $customerToken = null;
+        }
+
+        if ($session === null || $session->status !== SessionStatus::ACTIVE) {
+            $issuedToken = $customerToken ?? $this->sessions->issueDraftToken();
+            $customerToken = $issuedToken;
+        }
+
         $order = $this->orders->createOrder(
             $table,
             $uuid,
             $request->lines(),
             $session,
             $request->validated('note'),
+            $customerToken,
         );
 
         // WAITING_PAYMENT holatida order DRAFT bo'lib saqlandi —
@@ -62,6 +78,9 @@ class OrderController extends Controller
         if ($order->status->isDraft()) {
             return ApiResponse::error('SESSION_WAITING_PAYMENT', 409, [
                 'draft_order_id' => $order->id,
+                // ⚠️ Bu token draftning YAGONA kaliti — mijoz uni
+                // saqlashi kerak, aks holda o'z buyurtmasini yo'qotadi.
+                'customer_token' => $issuedToken,
                 'order' => new OrderResource($order->load('items')),
             ]);
         }
@@ -71,18 +90,29 @@ class OrderController extends Controller
 
     public function show(Request $request, int $order): JsonResponse
     {
+        /** @var TableSession|null $session */
         $session = $request->attributes->get('session');
+        $tokenHash = (string) $request->attributes->get('customer_token_hash');
 
-        $model = Order::query()
+        /*
+         * Ko'rish huquqi ikki yo'l bilan beriladi:
+         *
+         *   1. Order mijozning SESSIONIGA tegishli
+         *   2. Order — mijozning O'Z DRAFTI (token hash mos keladi)
+         *
+         * ⚠️ "Shu stoldagi har qanday draft" qoidasi ATAYIN YO'Q:
+         * bitta stolda ikki telefon draft qoldirsa, har biri
+         * ikkinchisining buyurtmasini ko'rardi.
+         */
+        $model = Order::withoutGlobalScopes()
             ->with('items')
             ->where('id', $order)
-            // Mijoz FAQAT o'z sessionining orderini ko'radi. Draftlar
-            // (session_id = null) shu stolga bog'langan bo'lsa ko'rinadi.
-            ->where(function ($query) use ($session): void {
-                $query->where('session_id', $session->id)
-                    ->orWhere(function ($draft) use ($session): void {
-                        $draft->whereNull('session_id')->where('table_id', $session->table_id);
-                    });
+            ->where(function ($query) use ($session, $tokenHash): void {
+                $query->where('created_by_token_hash', $tokenHash);
+
+                if ($session !== null) {
+                    $query->orWhere('session_id', $session->id);
+                }
             })
             ->first();
 

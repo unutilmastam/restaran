@@ -251,6 +251,110 @@ class OrderTest extends TestCase
         $this->assertSame(OrderStatus::EXPIRED, Order::firstOrFail()->status);
     }
 
+    public function test_two_phones_leaving_drafts_each_see_only_their_own(): void
+    {
+        // ⚠️ Bu yerda "stol bo'yicha ko'rish" qoidasi bo'lsa, har bir
+        // telefon ikkinchisining buyurtmasini ko'rardi va to'lovdan
+        // keyin summalar aralashardi.
+        $this->makeWaitingPayment();
+
+        $first = $this->submit([['product_id' => $this->osh->id, 'quantity' => 1]])
+            ->assertStatus(409)->json('data');
+        $second = $this->submit([['product_id' => $this->chegirmali->id, 'quantity' => 2]])
+            ->assertStatus(409)->json('data');
+
+        $this->assertNotSame($first['customer_token'], $second['customer_token']);
+        $this->assertNotSame($first['draft_order_id'], $second['draft_order_id']);
+
+        // Har biri O'ZINIKINI ko'radi.
+        $this->withHeader('X-Customer-Token', $first['customer_token'])
+            ->getJson("/api/v1/orders/{$first['draft_order_id']}")
+            ->assertOk()
+            ->assertJsonPath('data.order.items.0.name', 'Osh');
+
+        $this->withHeader('X-Customer-Token', $second['customer_token'])
+            ->getJson("/api/v1/orders/{$second['draft_order_id']}")
+            ->assertOk()
+            ->assertJsonPath('data.order.items.0.name', 'Napoleon');
+
+        // Va BIR-BIRINIKINI KO'RMAYDI.
+        $this->withHeader('X-Customer-Token', $first['customer_token'])
+            ->getJson("/api/v1/orders/{$second['draft_order_id']}")
+            ->assertNotFound();
+
+        $this->withHeader('X-Customer-Token', $second['customer_token'])
+            ->getJson("/api/v1/orders/{$first['draft_order_id']}")
+            ->assertNotFound();
+    }
+
+    public function test_a_draft_token_cannot_read_the_departing_customers_session(): void
+    {
+        // Ketayotgan mijozning hisobi — yangi mijozga KO'RINMASLIGI kerak.
+        $this->makeWaitingPayment();
+
+        $draftToken = $this->submit([['product_id' => $this->osh->id, 'quantity' => 1]])
+            ->assertStatus(409)->json('data.customer_token');
+
+        $this->withHeader('X-Customer-Token', $draftToken)
+            ->getJson('/api/v1/sessions/me')
+            ->assertUnauthorized()
+            ->assertJsonPath('error_code', 'SESSION_NOT_FOUND');
+    }
+
+    public function test_opening_a_session_on_a_waiting_payment_table_is_refused(): void
+    {
+        // Aks holda yangi mijoz ketayotgan mijozning sessioniga a'zo
+        // bo'lib, uning buyurtmalari va summasini ko'rardi.
+        $this->makeWaitingPayment();
+
+        $response = $this->postJson("/api/v1/t/{$this->table->nfc_token}/sessions", [
+            'guest_count' => 2,
+        ])->assertStatus(409)->assertJsonPath('error_code', 'SESSION_WAITING_PAYMENT');
+
+        $this->assertNotNull($response->json('data.draft_token'));
+        $this->assertDatabaseCount('session_devices', 1); // faqat birinchi mijozniki
+    }
+
+    public function test_a_draft_keeps_its_owner_when_it_moves_to_the_new_session(): void
+    {
+        // docs/01 §12, 22-23 qadamlar (PHASE 12 da to'liq ishlatiladi).
+        $this->makeWaitingPayment();
+
+        $draft = $this->submit([['product_id' => $this->osh->id, 'quantity' => 1]])
+            ->assertStatus(409)->json('data');
+
+        RestaurantContext::allowCrossRestaurant();
+        $old = TableSession::firstOrFail();
+        app(\App\Services\SessionService::class)->closeSession($old);
+
+        $new = TableSession::create([
+            'restaurant_id' => $this->restaurant->id,
+            'table_id' => $this->table->id,
+            'guest_count' => 2,
+            'status' => SessionStatus::ACTIVE,
+            'public_id' => \Illuminate\Support\Str::random(32),
+            'opened_at' => now(),
+        ]);
+
+        app(OrderService::class)->attachDraftToSession(
+            Order::findOrFail($draft['draft_order_id']),
+            $new,
+        );
+        RestaurantContext::reset();
+
+        // Draft egasi endi yangi sessionning a'zosi — o'z buyurtmasini
+        // kuzatishda davom etadi.
+        $this->withHeader('X-Customer-Token', $draft['customer_token'])
+            ->getJson('/api/v1/sessions/me')
+            ->assertOk()
+            ->assertJsonCount(1, 'data.orders');
+
+        $this->withHeader('X-Customer-Token', $draft['customer_token'])
+            ->getJson("/api/v1/orders/{$draft['draft_order_id']}")
+            ->assertOk()
+            ->assertJsonPath('data.order.status', OrderStatus::PENDING->value);
+    }
+
     // ── 4. ORDER LOCK ──────────────────────────────────────────────────
 
     public function test_a_second_order_is_blocked_until_the_first_is_delivered(): void

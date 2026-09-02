@@ -168,6 +168,9 @@ return [
     ],
 
     'attributes' => [
+        'name_uz' => 'Nomi (UZ)',
+        'name_ru' => 'Nomi (RU)',
+        'price' => 'Narx',
         'client_order_uuid' => 'Buyurtma identifikatori',
         'items' => 'Mahsulotlar',
         'guest_count' => 'Mehmonlar soni',

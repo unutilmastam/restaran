@@ -81,7 +81,18 @@
     "avg_check": "Средний чек",
     "guests": "Гости",
     "login": "Войти",
-    "logout": "Выйти"
+    "logout": "Выйти",
+    "login_title": "Панель администратора",
+    "username": "Логин",
+    "password": "Пароль",
+    "accept": "Принять",
+    "cancel_order": "Отменить",
+    "no_orders": "Новых заказов нет",
+    "today": "Сегодня",
+    "table_free": "Свободен",
+    "limits": "Лимиты",
+    "logout_confirm": "Выйти?",
+    "pending_orders": "Ожидают"
   },
   "table_status": {
     "available": "Свободен",
