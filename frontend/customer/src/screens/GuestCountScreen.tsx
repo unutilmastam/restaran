@@ -58,10 +58,14 @@ export function GuestCountScreen({ tableNumber, capacity, onConfirm }: Props) {
         </button>
       </div>
 
+      <p aria-live="polite" className="mt-4 text-center text-sm text-slate-500">
+        {t('customer.guests', { count })}
+      </p>
+
       <button
         type="button"
         onClick={() => onConfirm(count)}
-        className="mt-12 h-14 rounded-2xl bg-slate-900 text-base font-semibold text-white transition active:bg-slate-800"
+        className="mt-8 h-14 rounded-2xl bg-slate-900 text-base font-semibold text-white transition active:bg-slate-800"
       >
         {t('customer.view_menu')}
       </button>

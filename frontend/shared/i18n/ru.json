@@ -27,7 +27,15 @@
     "my_order": "Мой заказ",
     "cart_empty": "Корзина пуста",
     "unavailable": "Недоступно",
-    "waiter_called": "Официант вызван"
+    "waiter_called": "Официант вызван",
+    "items_count_one": "{{count}} блюдо",
+    "items_count_few": "{{count}} блюда",
+    "items_count_many": "{{count}} блюд",
+    "guests_one": "{{count}} гость",
+    "guests_few": "{{count}} гостя",
+    "guests_many": "{{count}} гостей",
+    "items_count_other": "{{count}} блюда",
+    "guests_other": "{{count}} гостя"
   },
   "order": {
     "pending": "Отправлен",
@@ -110,12 +118,15 @@
     "status_suspended": "Приостановлена",
     "title": "Подписка",
     "expires_at": "Дата окончания",
-    "days_left": "Осталось {{count}} дн.",
     "choose_plan": "Выберите тариф",
     "contact_for_payment": "Свяжитесь для оплаты",
     "request_sent": "Запрос отправлен",
     "send_request": "Отправить запрос",
-    "restaurant_unavailable": "Ресторан временно не работает"
+    "restaurant_unavailable": "Ресторан временно не работает",
+    "days_left_one": "Остался {{count}} день",
+    "days_left_few": "Осталось {{count}} дня",
+    "days_left_many": "Осталось {{count}} дней",
+    "days_left_other": "Осталось {{count}} дня"
   },
   "super": {
     "title": "Панель супер-админа",

@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\Customer\MenuController;
+use App\Http\Controllers\Api\V1\Customer\SessionController;
 use App\Http\Controllers\Api\V1\Customer\TableController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Middleware\ResolveCustomerSession;
 use App\Http\Middleware\ResolveTableByNfcToken;
 use Illuminate\Support\Facades\Route;
 
@@ -29,7 +31,20 @@ foreach (['/t/{nfc_token}', '/r/{slug}/t/{nfc_token}'] as $prefix) {
     Route::middleware(ResolveTableByNfcToken::class)->group(function () use ($prefix): void {
         Route::get($prefix, TableController::class);
         Route::get($prefix.'/menu', MenuController::class);
+
+        // Session ochish yoki mavjudiga ulanish (docs/01 §12).
+        // Rate limit: bir stolga daqiqasiga 10 ta so'rov (docs/05 §3.7).
+        Route::post($prefix.'/sessions', [SessionController::class, 'store'])
+            ->middleware('throttle:10,1');
     });
 }
 
-// Order yuborish PHASE 5 da, session PHASE 4 da.
+/*
+| Session'ga bog'langan chaqiruvlar — `X-Customer-Token` header'i bilan.
+| Bu yerda nfc_token yo'q, restoran token orqali aniqlanadi.
+*/
+Route::middleware(ResolveCustomerSession::class)->group(function (): void {
+    Route::get('/sessions/me', [SessionController::class, 'me']);
+});
+
+// Order yuborish PHASE 5 da.

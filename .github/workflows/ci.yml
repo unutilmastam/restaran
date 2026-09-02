@@ -56,6 +56,18 @@ jobs:
           DB_PASSWORD: ''
         run: php artisan test
 
+      # Haqiqiy parallel process'lar bilan — lockForUpdate va
+      # UNIQUE(active_key) kafolatlari (docs/07-DB-DECISIONS.md §6).
+      - name: Concurrency tests
+        working-directory: backend
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: smart_restaurant_test
+          DB_USERNAME: root
+          DB_PASSWORD: ''
+        run: php artisan test --group=concurrency
+
   frontend:
     name: Frontend (Node 22)
     runs-on: ubuntu-latest

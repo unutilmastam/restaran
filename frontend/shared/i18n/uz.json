@@ -27,7 +27,9 @@
     "my_order": "Buyurtmam",
     "cart_empty": "Savat bo'sh",
     "unavailable": "Mavjud emas",
-    "waiter_called": "Afitsant chaqirildi"
+    "waiter_called": "Afitsant chaqirildi",
+    "items_count_other": "{{count}} ta taom",
+    "guests_other": "{{count}} kishi"
   },
   "order": {
     "pending": "Yuborildi",
@@ -110,12 +112,12 @@
     "status_suspended": "To'xtatilgan",
     "title": "Obuna",
     "expires_at": "Tugash sanasi",
-    "days_left": "{{count}} kun qoldi",
     "choose_plan": "Tarifni tanlang",
     "contact_for_payment": "To'lov uchun bog'laning",
     "request_sent": "So'rov yuborildi",
     "send_request": "So'rov yuborish",
-    "restaurant_unavailable": "Restoran vaqtincha ishlamayapti"
+    "restaurant_unavailable": "Restoran vaqtincha ishlamayapti",
+    "days_left_other": "{{count}} kun qoldi"
   },
   "super": {
     "title": "Super admin paneli",

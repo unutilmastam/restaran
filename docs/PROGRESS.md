@@ -7,8 +7,8 @@
 | 2 | Database | ✅ Tugadi | 23 migration fayli → 29 jadval · 11 enum · 20 model · global scope · seeder |
 | 2.5 | SaaS schema | ✅ Tugadi | `plans`, `subscriptions`, `subscription_payments` + `restaurants`/`users`/`settings` · snapshot kafolati |
 | 3 | Customer PWA | ✅ Tugadi | NFC → guest count → menyu → cart · PWA · **55.6 KB gz** (chegara 100) · 14 backend + 14 frontend test |
-| 4 | Session tizimi | ⬜ Keyingi | |
-| 5 | Order tizimi | ⬜ | |
+| 4 | Session tizimi | ✅ Tugadi | `SessionService`, `customer_token` (sha256), `session_devices`, NFC kirish logikasi · 15 feature + 3 concurrency test |
+| 5 | Order tizimi | ⬜ Keyingi | |
 | 6 | Admin panel | ⬜ | |
 | 6.5 | Obuna nazorati | ⬜ | `CheckSubscription`, grace period 3 kun |
 | 7 | Waiter PWA | ⬜ | |
@@ -57,3 +57,7 @@
 | 2026-09-02 | Service worker API'ni **hech qachon keshlamaydi** | Eskirgan narx ko'rsatilmasin (CLAUDE.md §2.6) |
 | 2026-09-02 | Cart kaliti `cart:{nfc_token}` | Boshqa stolga o'tganda cartlar aralashmasin |
 | 2026-09-02 | Cartda **narx saqlanmaydi** — faqat `productId` + `quantity` | Narx har doim menyudan/DB'dan olinadi |
+| 2026-09-02 | Ko'plik `Intl.PluralRules` orqali | Brauzerda tayyor — bundle 0 bayt oshdi, qoidalar qo'lda yozilmaydi |
+| 2026-09-02 | `customer_token` **sha256**, bcrypt emas | Token bo'yicha `where` qidiruv kerak; token allaqachon 64 belgi random |
+| 2026-09-02 | Concurrency testi **HTTP orqali emas**, parallel PHP process | `artisan serve` bu muhitda so'rovlarni ketma-ket bajaradi — HTTP testi hech nimani isbotlamasdi |
+| 2026-09-02 | Fallback yo'lida **qulflovchi o'qish** | InnoDB REPEATABLE READ: oddiy SELECT parallel commitni ko'rmaydi |

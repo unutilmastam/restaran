@@ -11,7 +11,21 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <testsuite name="Concurrency">
+            <directory>tests/Concurrency</directory>
+        </testsuite>
     </testsuites>
+
+    <!--
+        Concurrency testlari bazani migrate:fresh qiladi va sekin,
+        shuning uchun odatiy yugurishdan chiqarilgan.
+        Ishga tushirish: php artisan test  (chiziqcha)(chiziqcha)group=concurrency
+    -->
+    <groups>
+        <exclude>
+            <group>concurrency</group>
+        </exclude>
+    </groups>
     <source>
         <include>
             <directory>app</directory>

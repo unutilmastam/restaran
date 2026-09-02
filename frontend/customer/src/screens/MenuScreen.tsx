@@ -128,7 +128,7 @@ export function MenuScreen({ categories, products, onOpenCart }: Props) {
             className="flex h-14 w-full items-center justify-between rounded-2xl bg-slate-900 px-5 text-white transition active:bg-slate-800"
           >
             <span className="text-sm font-semibold">
-              {t('customer.cart')} · {itemCount}
+              {t('customer.items_count', { count: itemCount })}
             </span>
             <span className="font-semibold">{formatMoney(total, locale)}</span>
           </button>

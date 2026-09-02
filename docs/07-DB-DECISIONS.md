@@ -295,3 +295,28 @@ Generated column **ikkinchi yozuvni rad etadi**, lekin foydalanuvchiga
 xato ko'rsatadi. Yaxshi UX uchun `SessionService` `tables` qatorini
 `lockForUpdate()` bilan oladi va ikkinchi so'rovga **mavjud sessionni**
 qaytaradi. Generated column — oxirgi himoya chizig'i.
+
+### ⚠️ REPEATABLE READ tuzog'i (PHASE 4 da topildi)
+
+Fallback yo'lida (`UNIQUE` xatosini ushlab, mavjud sessionni qidirish)
+**oddiy `SELECT` ISHLAMAYDI**:
+
+```
+Worker A: transaction ochdi → INSERT qildi → hali COMMIT qilmadi
+Worker B: transaction ochdi (snapshot olindi) → INSERT → unique xato
+Worker B: SELECT ... → NULL!  ← A ning qatori B ning snapshot'ida yo'q
+```
+
+InnoDB `REPEATABLE READ` da oddiy `SELECT` transaction boshlanishidagi
+snapshot'ni o'qiydi. Yechim — **qulflovchi o'qish**:
+
+```php
+$this->findActiveSession($table, locking: true);   // ->lockForUpdate()
+```
+
+Qulflovchi o'qish snapshot'ni chetlab o'tib, eng oxirgi commit qilingan
+holatni beradi.
+
+Bu xatoni concurrency testi topdi: HTTP orqali emas, **haqiqiy parallel
+process** orqali sinalgani uchun. `RefreshDatabase` yoki bitta process
+ichidagi sikl buni hech qachon ko'rsata olmasdi.

@@ -167,5 +167,7 @@ return [
         ],
     ],
 
-    'attributes' => [],
+    'attributes' => [
+        'guest_count' => 'Количество гостей',
+    ],
 ];

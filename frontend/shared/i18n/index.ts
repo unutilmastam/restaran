@@ -12,9 +12,8 @@ import uz from './uz.json';
  * Bizga kerak bo'lgani — nested kalit va `{{var}}` interpolyatsiya, ular
  * ~50 qatorga sig'adi.
  *
- * ⚠️ Ko'plik shakllari (rus tilida "3 дня / 5 дней") HALI YO'Q. Kerak
- * bo'lganda `plural()` helperi qo'shiladi — hozircha bunday kalit yo'q
- * va i18n parity testi buni nazorat qiladi.
+ * Ko'plik shakllari `Intl.PluralRules` orqali — brauzerda tayyor, bundle
+ * hajmi oshmaydi va qo'lda yozilgan qoidalarga qaraganda ishonchliroq.
  */
 
 export const SUPPORTED_LOCALES = ['uz', 'ru'] as const satisfies readonly Locale[];
@@ -83,10 +82,46 @@ function lookup(locale: Locale, key: string): string | undefined {
   return typeof node === 'string' ? node : undefined;
 }
 
+const pluralRules = new Map<Locale, Intl.PluralRules>();
+
+/**
+ * Kalitning ko'plik shakli — `Intl.PluralRules` bo'yicha.
+ *
+ *   ru: 1 kun → `_one`, 3 kun → `_few`, 5 kun → `_many`
+ *   uz: har doim `_other` (bitta shakl)
+ *
+ * Qidiruv tartibi: aniq shakl → `_other` → bazaviy kalit. Shuning uchun
+ * o'zbekcha tarjimada faqat `_other` yozilsa yetarli, ruschada esa
+ * `_one`/`_few`/`_many` kerak — buni i18n parity testi tekshiradi.
+ */
+export function pluralCandidates(key: string, count: number, locale: Locale): string[] {
+  let rules = pluralRules.get(locale);
+
+  if (rules === undefined) {
+    rules = new Intl.PluralRules(locale);
+    pluralRules.set(locale, rules);
+  }
+
+  const category = rules.select(count);
+
+  return category === 'other' ? [`${key}_other`, key] : [`${key}_${category}`, `${key}_other`, key];
+}
+
 export function translate(key: string, vars?: Record<string, string | number>): string {
+  // `count` berilsa ko'plik shakli qidiriladi.
+  const keys =
+    typeof vars?.count === 'number' ? pluralCandidates(key, vars.count, current) : [key];
+
+  let template: string | undefined;
+
+  for (const candidate of keys) {
+    template = lookup(current, candidate) ?? lookup(DEFAULT_LOCALE, candidate);
+    if (template !== undefined) break;
+  }
+
   // Kalit topilmasa kalitning O'ZI qaytadi — i18n bo'shlig'i yashirilmaydi
   // va parity testi uni ushlaydi (docs/02 §1).
-  const template = lookup(current, key) ?? lookup(DEFAULT_LOCALE, key) ?? key;
+  template ??= key;
 
   if (vars === undefined) return template;
 
