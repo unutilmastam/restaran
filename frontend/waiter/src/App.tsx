@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@sr/shared';
 
 /** PHASE 1 — skeleton. Afitsant ekranlari PHASE 7 da quriladi. */
 export default function App() {

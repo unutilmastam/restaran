@@ -1,8 +1,15 @@
-import axios, { AxiosError, type AxiosInstance } from 'axios';
-
 import { getLocale } from '../i18n';
 import type { ApiEnvelope } from '../types';
 import { ApiError } from './errors';
+
+/**
+ * `fetch` asosidagi mijoz — `axios` ISHLATILMAYDI.
+ *
+ * SABAB: axios ~12 KB gzip. Customer PWA NFC orqali mobil internetda
+ * ochiladi va bundle byudjeti qattiq (≤100 KB gz). Bizga kerak bo'lgani —
+ * header qo'shish, JSON parse va xato konvertini ochish; `fetch` bularni
+ * qo'shimcha kutubxonasiz bajaradi.
+ */
 
 export interface ClientOptions {
   baseURL: string;
@@ -12,56 +19,87 @@ export interface ClientOptions {
   getCustomerToken?: () => string | null;
   /** 401 kelganda chaqiriladi (logout + login sahifasiga yo'naltirish). */
   onUnauthenticated?: () => void;
+  /** Millisekund. Sekin mobil tarmoqda so'rov abadiy osilib qolmasin. */
+  timeoutMs?: number;
 }
 
-/**
- * Barcha so'rovlar `Accept-Language` header'i bilan ketadi
- * (docs/02-I18N-RU-UZ.md §2) va javob konverti ochib beriladi:
- * chaqiruvchi `data` ni oladi, xato bo'lsa `ApiError` tashlanadi.
- */
-export function createApiClient(options: ClientOptions): AxiosInstance {
-  const client = axios.create({
-    baseURL: options.baseURL,
-    timeout: 15000,
-    headers: { Accept: 'application/json' },
-  });
+export interface ApiResult<T> {
+  data: T;
+  status: number;
+}
 
-  client.interceptors.request.use((config) => {
-    config.headers.set('Accept-Language', getLocale());
+export interface ApiClient {
+  get: <T>(path: string, init?: RequestInit) => Promise<ApiResult<T>>;
+  post: <T>(path: string, body?: unknown, init?: RequestInit) => Promise<ApiResult<T>>;
+  patch: <T>(path: string, body?: unknown, init?: RequestInit) => Promise<ApiResult<T>>;
+  delete: <T>(path: string, init?: RequestInit) => Promise<ApiResult<T>>;
+}
+
+export function createApiClient(options: ClientOptions): ApiClient {
+  const timeoutMs = options.timeoutMs ?? 15000;
+
+  async function request<T>(method: string, path: string, body?: unknown, init?: RequestInit) {
+    const headers = new Headers(init?.headers);
+    headers.set('Accept', 'application/json');
+    // Har bir so'rov joriy til bilan ketadi (docs/02-I18N-RU-UZ.md §2).
+    headers.set('Accept-Language', getLocale());
 
     const token = options.getToken?.();
-    if (token) config.headers.set('Authorization', `Bearer ${token}`);
+    if (token) headers.set('Authorization', `Bearer ${token}`);
 
     const customerToken = options.getCustomerToken?.();
-    if (customerToken) config.headers.set('X-Customer-Token', customerToken);
+    if (customerToken) headers.set('X-Customer-Token', customerToken);
 
-    return config;
-  });
+    if (body !== undefined) headers.set('Content-Type', 'application/json');
 
-  client.interceptors.response.use(
-    (response) => {
-      const envelope = response.data as ApiEnvelope<unknown>;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-      // Konvertni ochib beramiz — komponentlar `success`/`data` bilan
-      // ovora bo'lmasin.
-      response.data = envelope?.success === true ? envelope.data : envelope;
+    let response: Response;
 
-      return response;
-    },
-    (error: AxiosError<ApiEnvelope<unknown>>) => {
-      if (!error.response) {
-        // Tarmoq uzildi — docs/02 §6 lug'atidagi NETWORK_ERROR.
-        // Matn frontend i18n'dan olinadi, chunki server javob bermadi.
-        throw new ApiError('NETWORK_ERROR', 0, '', '');
+    try {
+      response = await fetch(options.baseURL + path, {
+        ...init,
+        method,
+        headers,
+        body: body === undefined ? undefined : JSON.stringify(body),
+        signal: init?.signal ?? controller.signal,
+      });
+    } catch {
+      // Tarmoq uzildi yoki timeout — server javob bermadi, shuning uchun
+      // matn frontend i18n'dan olinadi (docs/02 §6 NETWORK_ERROR).
+      throw new ApiError('NETWORK_ERROR', 0, '', '');
+    } finally {
+      clearTimeout(timer);
+    }
+
+    let envelope: ApiEnvelope<T> | null = null;
+
+    try {
+      envelope = (await response.json()) as ApiEnvelope<T>;
+    } catch {
+      envelope = null;
+    }
+
+    if (!response.ok || envelope === null || envelope.success !== true) {
+      if (response.status === 401) options.onUnauthenticated?.();
+
+      if (envelope === null) {
+        throw new ApiError('SERVER_ERROR', response.status, '', '');
       }
 
-      const { status, data } = error.response;
+      throw ApiError.fromEnvelope(envelope, response.status);
+    }
 
-      if (status === 401) options.onUnauthenticated?.();
+    // Konvertni ochib beramiz — komponentlar `success`/`data` bilan
+    // ovora bo'lmasin.
+    return { data: envelope.data, status: response.status };
+  }
 
-      throw ApiError.fromEnvelope(data as ApiEnvelope<unknown>, status);
-    },
-  );
-
-  return client;
+  return {
+    get: (path, init) => request('GET', path, undefined, init),
+    post: (path, body, init) => request('POST', path, body, init),
+    patch: (path, body, init) => request('PATCH', path, body, init),
+    delete: (path, init) => request('DELETE', path, undefined, init),
+  };
 }

@@ -62,7 +62,7 @@ curl -H "Accept-Language: uz" http://localhost:8000/api/v1/health
 cd frontend
 npm install                  # npm workspaces — bitta o'rnatish 3 ta app uchun
 
-npm run dev:customer         # http://localhost:5173
+npm run dev:customer         # http://localhost:5173/t/{nfc_token}
 npm run dev:admin            # http://localhost:5174
 npm run dev:waiter           # http://localhost:5175
 npm run dev:super            # http://localhost:5176
@@ -93,6 +93,22 @@ docs/               arxitektura, i18n, phase'lar, test scenario, SaaS
 ```
 
 ---
+
+## Bundle byudjeti
+
+Customer PWA NFC orqali **mobil internetda** ochiladi, shuning uchun
+hajm qattiq nazoratda: **≤ 100 KB gzip**.
+
+| Hozir | |
+|---|---|
+| JS | 55.6 KB gz |
+| CSS | 3.2 KB gz |
+| Cart (lazy chunk) | 1.1 KB gz |
+
+Shu sababli customer appda **`react-router` ishlatilmaydi** (bitta NFC
+kirish nuqtasi), `i18next` va `axios` o'rniga `shared/` dagi kichik
+implementatsiyalar turadi. Yangi bog'liqlik qo'shishdan oldin
+`npm run build` bilan hajmni tekshiring.
 
 ## Testlar
 

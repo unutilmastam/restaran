@@ -13,9 +13,6 @@
     "./format": "./format/index.ts"
   },
   "dependencies": {
-    "axios": "^1.7.9",
-    "i18next": "^24.2.1",
-    "react-i18next": "^15.4.0",
     "zustand": "^5.0.3"
   },
   "peerDependencies": {

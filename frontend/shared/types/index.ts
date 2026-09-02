@@ -130,16 +130,25 @@ export interface Category {
   name: string;
   slug: string;
   image: string | null;
-  sort_order: number;
 }
 
+/**
+ * ⚠️ `price` va `effective_price` — SON (`App\Casts\Money`), string emas.
+ * Mijoz bu qiymatlarni order submit'da QAYTA YUBORMAYDI: narx har doim
+ * DB'dan qayta hisoblanadi (CLAUDE.md §2.6).
+ */
 export interface Product {
   id: number;
   category_id: number;
   name: string;
   description: string | null;
+  /** `null` bo'lsa frontend placeholder ko'rsatadi. */
   image: string | null;
-  price: string;
+  price: number;
+  /** Chegirma FOIZ (0-100). */
+  discount: number;
+  /** Chegirma qo'llangan narx — ko'rsatish uchun. */
+  effective_price: number;
   weight: number | null;
   preparation_time: number | null;
   is_available: boolean;
@@ -152,29 +161,53 @@ export interface TableInfo {
   status: TableStatus;
 }
 
+/** `GET /t/{nfc_token}` javobi. */
+export interface RestaurantInfo {
+  name: string;
+  slug: string;
+  logo: string | null;
+  currency: string;
+  default_locale: Locale;
+}
+
+export interface TableEntry {
+  restaurant: RestaurantInfo;
+  table: TableInfo;
+  /** `false` bo'lsa menyu ochilmaydi (docs/06-SAAS.md §4). */
+  is_available: boolean;
+  blocked_reason: string | null;
+  session: SessionInfo | null;
+}
+
+/** `GET /t/{nfc_token}/menu` javobi. */
+export interface Menu {
+  categories: Category[];
+  products: Product[];
+}
+
 export interface SessionInfo {
   public_id: string;
   status: SessionStatus;
   guest_count: number;
-  total_amount: string;
+  total_amount: number;
   opened_at: string;
 }
 
 export interface OrderItem {
   product_id: number;
   name: string;
-  price: string;
+  price: number;
   quantity: number;
-  subtotal: string;
+  subtotal: number;
 }
 
 export interface Order {
   id: number;
   order_number: string;
   status: OrderStatus;
-  subtotal: string;
-  discount: string;
-  total: string;
+  subtotal: number;
+  discount: number;
+  total: number;
   comment: string | null;
   items: OrderItem[];
   created_at: string;

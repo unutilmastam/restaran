@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@sr/shared';
 
 /** PHASE 1 — skeleton. To'liq panel PHASE 13.5 da (docs/06-SAAS.md §9). */
 export default function App() {

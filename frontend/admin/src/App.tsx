@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@sr/shared';
 
 /** PHASE 1 — skeleton. Dashboard va sidebar PHASE 6 da quriladi. */
 export default function App() {

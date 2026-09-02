@@ -6,8 +6,8 @@
 | 1 | Project setup | ✅ Tugadi | Laravel 11.56 + Sanctum + Pusher · **4 ta** Vite app + `@sr/shared` · i18n ru/uz · `/api/v1/health` · SaaS config/i18n/types · 11 backend + 8 frontend test yashil |
 | 2 | Database | ✅ Tugadi | 23 migration fayli → 29 jadval · 11 enum · 20 model · global scope · seeder |
 | 2.5 | SaaS schema | ✅ Tugadi | `plans`, `subscriptions`, `subscription_payments` + `restaurants`/`users`/`settings` · snapshot kafolati |
-| 3 | Customer PWA | ⬜ Keyingi | |
-| 4 | Session tizimi | ⬜ | |
+| 3 | Customer PWA | ✅ Tugadi | NFC → guest count → menyu → cart · PWA · **55.6 KB gz** (chegara 100) · 14 backend + 14 frontend test |
+| 4 | Session tizimi | ⬜ Keyingi | |
 | 5 | Order tizimi | ⬜ | |
 | 6 | Admin panel | ⬜ | |
 | 6.5 | Obuna nazorati | ⬜ | `CheckSubscription`, grace period 3 kun |
@@ -51,3 +51,9 @@
 | 2026-09-02 | Scope restoran aniqlanmasa **`1 = 0`** qaytaradi | Kod xatosida ma'lumot sizib chiqmasin — sahifa bo'sh qolsin |
 | 2026-09-02 | `App\Casts\Money` — API'da **son**, string emas | Laravel `decimal:2` string qaytaradi; pul PHP'da yig'ilmaydi |
 | 2026-09-02 | `SubscriptionPayment` **o'zgarmas** (update/delete bloklangan) | `plans.price` o'zgarsa moliyaviy tarix buzilmasin |
+| 2026-09-02 | `i18next` + `react-i18next` **olib tashlandi** (~18 KB gz) | Customer bundle byudjeti; o'rniga `shared/i18n` da ~50 qatorlik implementatsiya |
+| 2026-09-02 | `axios` **olib tashlandi** (~12 KB gz) | `fetch` bir xil ishni bajaradi; bundle 75 → 55.6 KB gz |
+| 2026-09-02 | Customer'da `react-router` **ishlatilmaydi** (~17 KB gz) | Bitta kirish nuqtasi (NFC URL), ekranlar holat orqali almashadi |
+| 2026-09-02 | Service worker API'ni **hech qachon keshlamaydi** | Eskirgan narx ko'rsatilmasin (CLAUDE.md §2.6) |
+| 2026-09-02 | Cart kaliti `cart:{nfc_token}` | Boshqa stolga o'tganda cartlar aralashmasin |
+| 2026-09-02 | Cartda **narx saqlanmaydi** — faqat `productId` + `quantity` | Narx har doim menyudan/DB'dan olinadi |
