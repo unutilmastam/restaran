@@ -1,23 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Support\RestaurantContext;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Seeder konsoldan yuriladi — `auth()` yo'q, shuning uchun global
+        // scope hech qanday restoranni aniqlay olmaydi va `whereRaw('1 = 0')`
+        // qaytaradi (docs/07-DB-DECISIONS.md §2). Seeding vaqtida scope
+        // ochiladi; barcha `restaurant_id` lar ANIQ ko'rsatiladi.
+        RestaurantContext::allowCrossRestaurant();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            PlanSeeder::class,
+            PlatformSettingSeeder::class,
+            SuperAdminSeeder::class,
+            DemoRestaurantSeeder::class,
         ]);
+
+        RestaurantContext::reset();
     }
 }

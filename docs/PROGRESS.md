@@ -4,9 +4,9 @@
 |---|---|---|---|
 | 0 | Tayyorgarlik | ✅ Tugadi | `docs/05-PHASE0-PLAN.md`. 12 ta savol yopildi (§5) |
 | 1 | Project setup | ✅ Tugadi | Laravel 11.56 + Sanctum + Pusher · **4 ta** Vite app + `@sr/shared` · i18n ru/uz · `/api/v1/health` · SaaS config/i18n/types · 11 backend + 8 frontend test yashil |
-| 2 | Database | ⬜ Keyingi | 27 migration (20 biznes + 7 infratuzilma) — PHASE 2.5 bilan BIRGA |
-| 2.5 | SaaS schema | ⬜ | `plans`, `subscriptions`, `subscription_payments` + `restaurants`/`users`/`settings` o'zgarishlari |
-| 3 | Customer PWA | ⬜ | |
+| 2 | Database | ✅ Tugadi | 23 migration fayli → 29 jadval · 11 enum · 20 model · global scope · seeder |
+| 2.5 | SaaS schema | ✅ Tugadi | `plans`, `subscriptions`, `subscription_payments` + `restaurants`/`users`/`settings` · snapshot kafolati |
+| 3 | Customer PWA | ⬜ Keyingi | |
 | 4 | Session tizimi | ⬜ | |
 | 5 | Order tizimi | ⬜ | |
 | 6 | Admin panel | ⬜ | |
@@ -46,3 +46,8 @@
 | 2026-09-02 | `OWNER_ADMIN` roli | Restoran o'zini o'zi qulflab qo'ymasligi uchun (javob 4) |
 | 2026-09-02 | Yangi restoranda **demo kontent yo'q** | Javob 8 — hujjat §9 dagi "demo kategoriya/mahsulot" olib tashlandi |
 | 2026-09-02 | `settings.restaurant_id` **nullable** | `null` = platforma darajasi (aloqa ma'lumotlari, javob 6) |
+| 2026-09-02 | `activity_logs.restaurant_id` ham **nullable** | SUPER_ADMIN platforma amallari + restoran o'chganda audit qolishi kerak (`ON DELETE SET NULL`) |
+| 2026-09-02 | Global scope **rolga qarab emas, route'ga qarab** chetlab o'tiladi | SUPER_ADMIN `/admin/*` da ham faqat o'z kontekstini ko'radi |
+| 2026-09-02 | Scope restoran aniqlanmasa **`1 = 0`** qaytaradi | Kod xatosida ma'lumot sizib chiqmasin — sahifa bo'sh qolsin |
+| 2026-09-02 | `App\Casts\Money` — API'da **son**, string emas | Laravel `decimal:2` string qaytaradi; pul PHP'da yig'ilmaydi |
+| 2026-09-02 | `SubscriptionPayment` **o'zgarmas** (update/delete bloklangan) | `plans.price` o'zgarsa moliyaviy tarix buzilmasin |
