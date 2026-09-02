@@ -37,7 +37,7 @@ return new class extends Migration
 
             $table->unsignedSmallInteger('quantity');
             $table->decimal('subtotal', 12, 2)->unsigned();
-            $table->string('comment', 255)->nullable();
+            $table->string('note', 255)->nullable();
 
             $table->timestamps();
 

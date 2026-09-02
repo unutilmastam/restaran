@@ -8,8 +8,8 @@
 | 2.5 | SaaS schema | ✅ Tugadi | `plans`, `subscriptions`, `subscription_payments` + `restaurants`/`users`/`settings` · snapshot kafolati |
 | 3 | Customer PWA | ✅ Tugadi | NFC → guest count → menyu → cart · PWA · **55.6 KB gz** (chegara 100) · 14 backend + 14 frontend test |
 | 4 | Session tizimi | ✅ Tugadi | `SessionService`, `customer_token` (sha256), `session_devices`, NFC kirish logikasi · 15 feature + 3 concurrency test |
-| 5 | Order tizimi | ⬜ Keyingi | |
-| 6 | Admin panel | ⬜ | |
+| 5 | Order tizimi | ✅ Tugadi | Narx qayta hisoblash · idempotency · DRAFT · order lock · `order_number` · snapshot · status ekrani (polling 5s) · 22 feature + 3 concurrency test |
+| 6 | Admin panel | ⬜ Keyingi | |
 | 6.5 | Obuna nazorati | ⬜ | `CheckSubscription`, grace period 3 kun |
 | 7 | Waiter PWA | ⬜ | |
 | 8 | Auto assignment | ⬜ | |
@@ -61,3 +61,7 @@
 | 2026-09-02 | `customer_token` **sha256**, bcrypt emas | Token bo'yicha `where` qidiruv kerak; token allaqachon 64 belgi random |
 | 2026-09-02 | Concurrency testi **HTTP orqali emas**, parallel PHP process | `artisan serve` bu muhitda so'rovlarni ketma-ket bajaradi — HTTP testi hech nimani isbotlamasdi |
 | 2026-09-02 | Fallback yo'lida **qulflovchi o'qish** | InnoDB REPEATABLE READ: oddiy SELECT parallel commitni ko'rmaydi |
+| 2026-09-02 | Draft TTL **120 → 30 daqiqa** | Foydalanuvchi belgiladi |
+| 2026-09-02 | `orders.comment` → **`orders.note`** (255) | Foydalanuvchi belgiladi; migration hali deploy qilinmagan edi |
+| 2026-09-02 | `firstOrCreate` **atomar emas** — `order_counters` da try/catch | Kunning birinchi parallel buyurtmalari unique xatoga tushardi |
+| 2026-09-02 | Customer polling **5 sek**, `is_final` da to'xtaydi | Batareya va traffik; WebSocket ishlatilmaydi |

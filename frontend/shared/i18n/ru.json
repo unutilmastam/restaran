@@ -35,7 +35,13 @@
     "guests_few": "{{count}} гостя",
     "guests_many": "{{count}} гостей",
     "items_count_other": "{{count}} блюда",
-    "guests_other": "{{count}} гостя"
+    "guests_other": "{{count}} гостя",
+    "order_sent": "Заказ отправлен",
+    "order_number": "Заказ",
+    "submitting": "Отправляем...",
+    "note_placeholder": "Комментарий (например: не острое)",
+    "back_to_menu": "Вернуться в меню",
+    "new_order": "Новый заказ"
   },
   "order": {
     "pending": "Отправлен",

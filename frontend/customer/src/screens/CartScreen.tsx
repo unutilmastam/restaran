@@ -1,4 +1,5 @@
 import { formatMoney, useTranslation, type Product } from '@sr/shared';
+import { useState } from 'react';
 
 import { ProductImage } from '../components/ProductImage';
 import { QuantityStepper } from '../components/QuantityStepper';
@@ -7,14 +8,15 @@ import { useCart } from '../store/cart';
 interface Props {
   products: Product[];
   onBack: () => void;
+  onSubmit: (note: string | null) => void;
+  submitting: boolean;
+  /** Buyurtma bloklangan bo'lsa xato kodi (`errors.*` lug'atidan). */
+  blockedReason: string | null;
 }
 
-/**
- * Cart ekrani. Buyurtma YUBORISH TUGMASI YO'Q — u PHASE 5 da qo'shiladi
- * (docs/03-PHASES.md PHASE 3: "Order yuborish HALI YO'Q").
- */
-export function CartScreen({ products, onBack }: Props) {
+export function CartScreen({ products, onBack, onSubmit, submitting, blockedReason }: Props) {
   const { t, locale } = useTranslation();
+  const [note, setNote] = useState('');
 
   const lines = useCart((state) => state.lines);
   const add = useCart((state) => state.add);
@@ -97,7 +99,16 @@ export function CartScreen({ products, onBack }: Props) {
             ))}
           </ul>
 
-          <div className="sticky bottom-0 border-t border-slate-200 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="sticky bottom-0 space-y-3 border-t border-slate-200 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <input
+              type="text"
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              maxLength={255}
+              placeholder={t('customer.note_placeholder')}
+              className="h-11 w-full rounded-xl bg-slate-50 px-4 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+            />
+
             <div className="flex items-baseline justify-between">
               <span className="text-slate-500">{t('common.total')}</span>
               <span className="text-xl font-semibold text-slate-900">
@@ -105,7 +116,20 @@ export function CartScreen({ products, onBack }: Props) {
               </span>
             </div>
 
-            {/* Buyurtma berish tugmasi PHASE 5 da qo'shiladi. */}
+            {blockedReason !== null && (
+              <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                {t(`errors.${blockedReason}`)}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => onSubmit(note.trim() === '' ? null : note.trim())}
+              disabled={submitting || blockedReason !== null}
+              className="h-14 w-full rounded-2xl bg-slate-900 text-base font-semibold text-white transition active:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400"
+            >
+              {submitting ? t('customer.submitting') : t('customer.place_order')}
+            </button>
           </div>
         </>
       )}

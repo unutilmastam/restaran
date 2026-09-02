@@ -564,8 +564,8 @@ Deploy qadami **yo'q** (PHASE 16 gacha).
 | **4** | Bir stolda 2 ta draft | Barcha muddati o'tmagan draftlar **bitta yangi sessionga** biriktiriladi; `guest_count` eng erta draftniki, admin tuzatishi mumkin | tavsiya qabul qilindi |
 | **5** | `order_number` | **Kunlik reset**: `#0001`, `order_counters` jadvali orqali race-safe | tavsiya qabul qilindi |
 | **6** | Discount | `products.discount` = **foiz** (0–100), `orders.discount` = admin qo'yadigan **summa** | tavsiya qabul qilindi |
-| **7** | Draft muddati | **120 daqiqa** (`SR_DRAFT_TTL_MINUTES`) | tavsiya qabul qilindi |
-| **8** | Order izohi | **Ha** — `orders.comment` va `order_items.comment` | tavsiya qabul qilindi |
+| **7** | Draft muddati | **30 daqiqa** (`SR_DRAFT_TTL_MINUTES`) — PHASE 5 da 120 dan qisqartirildi | foydalanuvchi belgiladi |
+| **8** | Order izohi | **Ha** — `orders.note` va `order_items.note` (VARCHAR 255) | foydalanuvchi belgiladi |
 | **9** | Bir stolda bir necha telefon | **Bitta sessionni bo'lishadi.** Har telefon mavjud ACTIVE sessionga ulanadi va o'z tokenini oladi → `session_devices` jadvali kerak (PHASE 2 da 17-jadval) | tavsiya qabul qilindi |
 | **10** | Qisman to'lov | **Yo'q** — faqat to'liq to'lov. `paid_amount` ustuni kelajak uchun qoladi | tavsiya qabul qilindi |
 | **11** | Hosting | **PHP 8.3 (`ea-php83`), MySQL 8.0.44, utf8mb4.** PHP-FPM hozircha o'chirilgan. `active_key` generated column yechimi tasdiqlandi | foydalanuvchi tasdiqladi |

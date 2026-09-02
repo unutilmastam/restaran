@@ -29,7 +29,13 @@
     "unavailable": "Mavjud emas",
     "waiter_called": "Afitsant chaqirildi",
     "items_count_other": "{{count}} ta taom",
-    "guests_other": "{{count}} kishi"
+    "guests_other": "{{count}} kishi",
+    "order_sent": "Buyurtma yuborildi",
+    "order_number": "Buyurtma",
+    "submitting": "Yuborilmoqda...",
+    "note_placeholder": "Izoh (masalan: achchiq qilmang)",
+    "back_to_menu": "Menyuga qaytish",
+    "new_order": "Yangi buyurtma"
   },
   "order": {
     "pending": "Yuborildi",

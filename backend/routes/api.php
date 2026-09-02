@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\Customer\MenuController;
+use App\Http\Controllers\Api\V1\Customer\OrderController;
 use App\Http\Controllers\Api\V1\Customer\SessionController;
 use App\Http\Controllers\Api\V1\Customer\TableController;
 use App\Http\Controllers\Api\V1\HealthController;
@@ -36,6 +37,11 @@ foreach (['/t/{nfc_token}', '/r/{slug}/t/{nfc_token}'] as $prefix) {
         // Rate limit: bir stolga daqiqasiga 10 ta so'rov (docs/05 §3.7).
         Route::post($prefix.'/sessions', [SessionController::class, 'store'])
             ->middleware('throttle:10,1');
+
+        // Order submit (docs/01-ARCHITECTURE.md §8).
+        // Rate limit: 10/daqiqa per stol (docs/05-PHASE0-PLAN.md §3.7).
+        Route::post($prefix.'/orders', [OrderController::class, 'store'])
+            ->middleware('throttle:10,1');
     });
 }
 
@@ -45,6 +51,5 @@ foreach (['/t/{nfc_token}', '/r/{slug}/t/{nfc_token}'] as $prefix) {
 */
 Route::middleware(ResolveCustomerSession::class)->group(function (): void {
     Route::get('/sessions/me', [SessionController::class, 'me']);
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->whereNumber('order');
 });
-
-// Order yuborish PHASE 5 da.

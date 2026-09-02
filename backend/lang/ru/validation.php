@@ -168,6 +168,8 @@ return [
     ],
 
     'attributes' => [
+        'client_order_uuid' => 'Идентификатор заказа',
+        'items' => 'Товары',
         'guest_count' => 'Количество гостей',
     ],
 ];

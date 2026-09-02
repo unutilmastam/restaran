@@ -68,6 +68,20 @@ class Order extends Model
         return $query->where('status', '!=', OrderStatus::DRAFT->value);
     }
 
+    /**
+     * Waiter'ga biriktirish uchun tayyor orderlar (PHASE 8).
+     *
+     * DRAFT bu yerga TUSHMAYDI — u hali buyurtma emas, faqat saqlangan
+     * savat (docs/05-PHASE0-PLAN.md §2.4).
+     */
+    public function scopeAssignable(Builder $query): Builder
+    {
+        return $query->whereIn('status', [
+            OrderStatus::ACCEPTED->value,
+            OrderStatus::WAITING_FOR_WAITER->value,
+        ]);
+    }
+
     /** "Yetkazilmagan order bor" tekshiruvi (CLAUDE.md §2.4). */
     public function scopeOpen(Builder $query): Builder
     {

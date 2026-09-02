@@ -15,7 +15,7 @@ return [
 
     // Draft order (docs/01 §12) yashash muddati. Muddati o'tgani EXPIRED bo'ladi,
     // shunda uzoq turgan cart to'lovdan keyin "tirilib" ketmaydi.
-    'draft_ttl_minutes' => (int) env('SR_DRAFT_TTL_MINUTES', 120),
+    'draft_ttl_minutes' => (int) env('SR_DRAFT_TTL_MINUTES', 30),
 
     // Customer real-time: WebSocket EMAS, polling.
     // Sabab: Pusher free plan = 100 concurrent connection.

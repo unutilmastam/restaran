@@ -199,6 +199,7 @@ export interface OrderItem {
   price: number;
   quantity: number;
   subtotal: number;
+  note: string | null;
 }
 
 export interface Order {
@@ -208,9 +209,19 @@ export interface Order {
   subtotal: number;
   discount: number;
   total: number;
-  comment: string | null;
+  note: string | null;
   items: OrderItem[];
   created_at: string;
+  delivered_at: string | null;
+  /** `true` bo'lganda frontend polling'ni TO'XTATADI. */
+  is_final: boolean;
+}
+
+/** `POST /t/{nfc_token}/orders` tanasi. Narx YUBORILMAYDI. */
+export interface CreateOrderPayload {
+  client_order_uuid: string;
+  items: { product_id: number; quantity: number; note?: string | null }[];
+  note?: string | null;
 }
 
 /** Cart faqat frontendda yashaydi — narx hech qachon serverga yuborilmaydi. */

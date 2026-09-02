@@ -46,7 +46,8 @@ return new class extends Migration
             $table->decimal('discount', 12, 2)->unsigned()->default(0);
             $table->decimal('total', 12, 2)->unsigned()->default(0);
 
-            $table->string('comment', 500)->nullable();
+            // Mijoz izohi ("achchiq qilmang").
+            $table->string('note', 255)->nullable();
 
             // DRAFT muddati (javob 7: 120 daqiqa). Muddati o'tgani EXPIRED
             // bo'ladi — uzoq turgan cart to'lovdan keyin "tirilib" ketmasin.

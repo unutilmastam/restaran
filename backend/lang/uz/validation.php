@@ -168,6 +168,8 @@ return [
     ],
 
     'attributes' => [
+        'client_order_uuid' => 'Buyurtma identifikatori',
+        'items' => 'Mahsulotlar',
         'guest_count' => 'Mehmonlar soni',
     ],
 ];

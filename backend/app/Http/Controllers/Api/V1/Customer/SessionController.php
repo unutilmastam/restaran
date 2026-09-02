@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1\Customer;
 use App\Exceptions\BusinessException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OpenSessionRequest;
+use App\Http\Resources\OrderResource;
 use App\Http\Resources\SessionResource;
 use App\Models\Table;
 use App\Models\TableSession;
@@ -60,8 +61,10 @@ class SessionController extends Controller
                 'number' => $session->table->number,
                 'name' => $session->table->name,
             ],
-            // Orderlar PHASE 5 da qo'shiladi.
-            'orders' => [],
+            // DRAFT ko'rinmaydi — u hali buyurtma emas.
+            'orders' => OrderResource::collection(
+                $session->orders()->visible()->with('items')->latest('id')->get(),
+            ),
         ]);
     }
 }
