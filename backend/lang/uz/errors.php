@@ -31,4 +31,13 @@ return [
     'NOT_FOUND' => 'Topilmadi',
     'TOO_MANY_REQUESTS' => 'Juda ko\'p so\'rov yuborildi. Biroz kuting.',
     'SERVER_ERROR' => 'Serverda xatolik yuz berdi',
+
+    // SaaS — docs/06-SAAS.md
+    'LIMIT_EXCEEDED' => 'Limitga yetdingiz. Kengaytirish uchun bog\'laning.',
+    'SUBSCRIPTION_EXPIRED' => 'Restoran obunasi tugagan',
+    'SUBSCRIPTION_SUSPENDED' => 'Restoran vaqtincha to\'xtatilgan',
+    'RESTAURANT_UNAVAILABLE' => 'Restoran vaqtincha ishlamayapti',
+    'RESTAURANT_ARCHIVED' => 'Restoran arxivlangan',
+    'OWNER_ADMIN_PROTECTED' => 'Restoran egasining hisobini o\'chirib bo\'lmaydi',
+    'CONFIRMATION_MISMATCH' => 'Tasdiqlash matni mos kelmadi',
 ];

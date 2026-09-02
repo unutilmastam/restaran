@@ -20,6 +20,14 @@ export interface ApiEnvelope<T> {
 
 /** docs/02-I18N-RU-UZ.md §6 — xato kodlari lug'ati. */
 export type ErrorCode =
+  // SaaS — docs/06-SAAS.md
+  | 'LIMIT_EXCEEDED'
+  | 'SUBSCRIPTION_EXPIRED'
+  | 'SUBSCRIPTION_SUSPENDED'
+  | 'RESTAURANT_UNAVAILABLE'
+  | 'RESTAURANT_ARCHIVED'
+  | 'OWNER_ADMIN_PROTECTED'
+  | 'CONFIRMATION_MISMATCH'
   | 'PRODUCT_UNAVAILABLE'
   | 'SESSION_NOT_FOUND'
   | 'ORDER_NOT_DELIVERED'
@@ -63,7 +71,58 @@ export type TableStatus =
 export type WaiterStatus = 'FREE' | 'BUSY' | 'OFFLINE';
 export type PaymentMethod = 'CASH' | 'CARD' | 'OTHER';
 export type PaymentStatus = 'PENDING' | 'PAID' | 'REFUNDED';
-export type UserRole = 'ADMIN' | 'WAITER';
+/**
+ * docs/06-SAAS.md §1. `OWNER_ADMIN` — restoranning birinchi admini:
+ * o'chirib bo'lmaydi, rolini faqat SUPER_ADMIN o'zgartira oladi.
+ * `SUPER_ADMIN` da `restaurant_id = null` — u hech qaysi restoranga
+ * tegishli emas.
+ */
+export type UserRole = 'SUPER_ADMIN' | 'OWNER_ADMIN' | 'ADMIN' | 'WAITER';
+
+/** docs/06-SAAS.md §3 — kunlik scheduler hisoblaydi. */
+export type SubscriptionStatus = 'TRIAL' | 'ACTIVE' | 'EXPIRING' | 'EXPIRED' | 'SUSPENDED';
+
+export type PaymentConfirmMethod = 'CLICK' | 'CASH' | 'TRANSFER' | 'OTHER';
+
+export interface Plan {
+  id: number;
+  code: 'MONTHLY' | 'QUARTERLY' | 'YEARLY' | string;
+  name: string;
+  days: number;
+  price: string;
+  is_active: boolean;
+}
+
+/**
+ * To'lov tarixi. Summa va tarif nomi SNAPSHOT — `plans` o'zgarsa ham bu
+ * yozuv o'zgarmaydi (docs/06-SAAS.md §2), shuning uchun UI hech qachon
+ * `Plan` ga bog'lanmaydi.
+ */
+export interface SubscriptionPayment {
+  id: number;
+  amount: string;
+  plan_code_snapshot: string;
+  plan_name_snapshot: string;
+  plan_days_snapshot: number;
+  method: PaymentConfirmMethod;
+  reference: string | null;
+  paid_at: string;
+}
+
+/** Admin panelidagi "To'lov" sahifasi uchun (docs/06-SAAS.md §5). */
+export interface SubscriptionState {
+  status: SubscriptionStatus;
+  expires_at: string;
+  days_left: number;
+  /** Grace period ichida panel read-only ishlaydi (§4). */
+  is_read_only: boolean;
+  plans: Plan[];
+  contact: {
+    phone: string | null;
+    telegram: string | null;
+    note: string | null;
+  };
+}
 
 /** Kategoriya va mahsulot nomlari serverda `Accept-Language` bo'yicha tanlanadi. */
 export interface Category {

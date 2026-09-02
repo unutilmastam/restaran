@@ -6,15 +6,17 @@
     "shared",
     "customer",
     "admin",
-    "waiter"
+    "waiter",
+    "super"
   ],
   "scripts": {
     "dev:customer": "npm run dev -w @sr/customer",
     "dev:admin": "npm run dev -w @sr/admin",
     "dev:waiter": "npm run dev -w @sr/waiter",
-    "build": "npm run build -w @sr/customer && npm run build -w @sr/admin && npm run build -w @sr/waiter",
+    "build": "npm run build -w @sr/customer && npm run build -w @sr/admin && npm run build -w @sr/waiter && npm run build -w @sr/super",
     "test": "vitest run",
-    "typecheck": "npm run --workspaces --if-present typecheck"
+    "typecheck": "npm run --workspaces --if-present typecheck",
+    "dev:super": "npm run dev -w @sr/super"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",

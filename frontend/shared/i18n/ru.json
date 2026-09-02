@@ -93,6 +93,47 @@
     "FORBIDDEN": "У вас нет прав на это действие",
     "NOT_FOUND": "Не найдено",
     "TOO_MANY_REQUESTS": "Слишком много запросов. Подождите немного.",
-    "SERVER_ERROR": "Произошла ошибка на сервере"
+    "SERVER_ERROR": "Произошла ошибка на сервере",
+    "LIMIT_EXCEEDED": "Вы достигли лимита. Свяжитесь с нами для расширения.",
+    "SUBSCRIPTION_EXPIRED": "Подписка ресторана истекла",
+    "SUBSCRIPTION_SUSPENDED": "Ресторан временно приостановлен",
+    "RESTAURANT_UNAVAILABLE": "Ресторан временно не работает",
+    "RESTAURANT_ARCHIVED": "Ресторан в архиве",
+    "OWNER_ADMIN_PROTECTED": "Аккаунт владельца ресторана удалить нельзя",
+    "CONFIRMATION_MISMATCH": "Текст подтверждения не совпадает"
+  },
+  "subscription": {
+    "status_trial": "Пробный период",
+    "status_active": "Активна",
+    "status_expiring": "Истекает",
+    "status_expired": "Истекла",
+    "status_suspended": "Приостановлена",
+    "title": "Подписка",
+    "expires_at": "Дата окончания",
+    "days_left": "Осталось {{count}} дн.",
+    "choose_plan": "Выберите тариф",
+    "contact_for_payment": "Свяжитесь для оплаты",
+    "request_sent": "Запрос отправлен",
+    "send_request": "Отправить запрос",
+    "restaurant_unavailable": "Ресторан временно не работает"
+  },
+  "super": {
+    "title": "Панель супер-админа",
+    "restaurants": "Рестораны",
+    "new_restaurant": "Новый ресторан",
+    "plans": "Тарифы",
+    "payments": "Платежи",
+    "requests": "Запросы",
+    "limits": "Лимиты",
+    "platform_settings": "Настройки платформы",
+    "activate": "Активировать",
+    "suspend": "Приостановить",
+    "archive": "В архив",
+    "restore": "Восстановить",
+    "delete_forever": "Удалить навсегда",
+    "delete_confirm_hint": "Для подтверждения введите название ресторана",
+    "login_as_admin": "Войти как админ",
+    "total_restaurants": "Всего ресторанов",
+    "monthly_revenue": "Выручка за месяц"
   }
 }

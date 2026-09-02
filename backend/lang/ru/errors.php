@@ -31,4 +31,13 @@ return [
     'NOT_FOUND' => 'Не найдено',
     'TOO_MANY_REQUESTS' => 'Слишком много запросов. Подождите немного.',
     'SERVER_ERROR' => 'Произошла ошибка на сервере',
+
+    // SaaS — docs/06-SAAS.md
+    'LIMIT_EXCEEDED' => 'Вы достигли лимита. Свяжитесь с нами для расширения.',
+    'SUBSCRIPTION_EXPIRED' => 'Подписка ресторана истекла',
+    'SUBSCRIPTION_SUSPENDED' => 'Ресторан временно приостановлен',
+    'RESTAURANT_UNAVAILABLE' => 'Ресторан временно не работает',
+    'RESTAURANT_ARCHIVED' => 'Ресторан в архиве',
+    'OWNER_ADMIN_PROTECTED' => 'Аккаунт владельца ресторана удалить нельзя',
+    'CONFIRMATION_MISMATCH' => 'Текст подтверждения не совпадает',
 ];

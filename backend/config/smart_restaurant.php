@@ -39,4 +39,38 @@ return [
     ],
 
     'locales' => ['uz', 'ru'],
+
+    /*
+    |----------------------------------------------------------------------
+    | SaaS qatlami — docs/06-SAAS.md
+    |----------------------------------------------------------------------
+    */
+    'saas' => [
+
+        // §3 — yangi restoran TRIAL bilan boshlanadi, tugagach oddiy
+        // EXPIRED oqimiga o'tadi (alohida holat emas).
+        'trial_days' => (int) env('SR_TRIAL_DAYS', 7),
+
+        // §3 — expires_at gacha shu kundan kam qolsa status EXPIRING.
+        'expiring_threshold_days' => (int) env('SR_EXPIRING_THRESHOLD_DAYS', 5),
+
+        // §4 — EXPIRED bo'lgach admin panel shu muddat davomida read-only
+        // ishlaydi (hisobotni yuklab olish uchun), keyin to'liq bloklanadi.
+        'grace_period_days' => (int) env('SR_GRACE_PERIOD_DAYS', 3),
+
+        // §8 — limit TARIFGA emas, RESTORANGA biriktiriladi. Bular faqat
+        // yangi restoran yaratilgandagi boshlang'ich qiymat; keyin
+        // SUPER_ADMIN har restoran uchun alohida o'zgartiradi.
+        'default_limits' => [
+            'max_tables' => (int) env('SR_MAX_TABLES', 30),
+            'max_products' => (int) env('SR_MAX_PRODUCTS', 100),
+            'max_waiters' => (int) env('SR_MAX_WAITERS', 10),
+        ],
+
+        // §6 — yangi bot. Bo'sh bo'lsa xabarnoma jim o'chadi.
+        'telegram' => [
+            'token' => env('TELEGRAM_BOT_TOKEN'),
+            'username' => env('TELEGRAM_BOT_USERNAME'),
+        ],
+    ],
 ];

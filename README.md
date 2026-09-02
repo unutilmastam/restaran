@@ -1,8 +1,10 @@
 # Smart Restaurant
 
-NFC asosida ishlaydigan restoran buyurtma boshqaruv tizimi.
-Uch interfeys: **Customer PWA** (NFC) · **Admin Panel** · **Waiter PWA**.
-Ikki til: **RU + UZ**.
+NFC asosida ishlaydigan restoran buyurtma boshqaruv tizimi — **SaaS**
+(bitta server, ko'p restoran).
+
+To'rt interfeys: **Customer PWA** (NFC) · **Admin Panel** · **Waiter PWA** ·
+**Super Admin** (platforma egasi). Ikki til: **RU + UZ**.
 
 > Loyihaning source of truth — [`CLAUDE.md`](CLAUDE.md) va [`docs/`](docs/).
 > Joriy holat: [`docs/PROGRESS.md`](docs/PROGRESS.md).
@@ -63,6 +65,7 @@ npm install                  # npm workspaces — bitta o'rnatish 3 ta app uchun
 npm run dev:customer         # http://localhost:5173
 npm run dev:admin            # http://localhost:5174
 npm run dev:waiter           # http://localhost:5175
+npm run dev:super            # http://localhost:5176
 ```
 
 Har bir app uchun `.env` ni `.env.example` dan nusxalang.
@@ -83,9 +86,10 @@ frontend/           npm workspaces
   customer/         PWA (NFC orqali ochiladi)
   admin/            kassa/desktop
   waiter/           afitsant telefoni
+  super/            SUPER_ADMIN — restoranlar, obuna, tariflar
 
 deploy/             cPanel yo'riqnomasi (PHASE 16)
-docs/               arxitektura, i18n, phase'lar, test scenario
+docs/               arxitektura, i18n, phase'lar, test scenario, SaaS
 ```
 
 ---
@@ -130,6 +134,16 @@ To'liq contract: [`docs/05-PHASE0-PLAN.md`](docs/05-PHASE0-PLAN.md) §3.
 | `Accept-Language: ru\|uz` | hamma |
 | `Authorization: Bearer <token>` | admin / waiter (Sanctum) |
 | `X-Customer-Token: <64 belgi>` | customer |
+
+## Domen strategiyasi (docs/06-SAAS.md §7)
+
+```
+menu.itcode.uz/r/{slug}/t/{nfc_token}   Customer PWA
+admin.itcode.uz                          Admin
+afitsant.itcode.uz                       Waiter
+super.itcode.uz                          SUPER_ADMIN
+api.itcode.uz                            Laravel API
+```
 
 ---
 

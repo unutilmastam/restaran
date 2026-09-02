@@ -50,6 +50,11 @@ PHASE 1 ni bajar: project setup.
 Kod yozgandan keyin har birini ishga tushirib tekshir. Faqat PHASE 1. Keyingi phase'ga o'tma.
 ```
 
+**SaaS qo'shimchasi (docs/06-SAAS.md §7):** frontend **4 ta** app:
+`customer`, `admin`, `waiter`, **`super`** (`super.itcode.uz` — SUPER_ADMIN paneli).
+`.env.example` da `TELEGRAM_BOT_TOKEN` va SaaS default'lari
+(`SR_TRIAL_DAYS=7`, `SR_MAX_TABLES=30`, `SR_MAX_PRODUCTS=100`, `SR_MAX_WAITERS=10`).
+
 ---
 
 ## PHASE 2 — DATABASE: MIGRATION + MODEL
@@ -71,6 +76,46 @@ docs/01-ARCHITECTURE.md §5 dagi schema aynan bajarilsin.
 - Seeder: 1 restoran, 1 admin, 3 waiter (Hasan, Akmal, Ali), 20 stol (nfc_token random),
   5 kategoriya va 25 mahsulot — name_ru va name_uz to'ldirilgan
 migrate:fresh --seed ni ishga tushirib tekshir. Faqat PHASE 2.
+```
+
+---
+
+## PHASE 2.5 — SaaS SCHEMA (PHASE 2 ICHIDA)
+
+> ⚠️ **PHASE 2 bilan BIRGA bajariladi.** Keyin qo'shish migration'larni
+> chalkashtiradi va `restaurants`/`users` ga `ALTER` talab qiladi.
+
+**Vazifa:** `docs/06-SAAS.md` §2 dagi jadvallar va ustunlar.
+
+**Natija:**
+- `plans`, `subscriptions`, `subscription_payments` jadvallari
+- `restaurants` ga: `slug`, `subscription_status`, `expires_at`, `owner_phone`,
+  `owner_telegram`, `owner_telegram_chat_id`, `logo`, `max_tables`,
+  `max_products`, `max_waiters`, `suspended_reason`, `deleted_at`
+- `users.role` ga `SUPER_ADMIN` va `OWNER_ADMIN` qo'shiladi
+- `settings.restaurant_id` **nullable** (null = platforma darajasi, §12)
+- `subscription_payments` da snapshot ustunlari (narx o'zgarsa tarix buzilmaydi)
+- Seed: 3 ta plan (narx 0), 1 ta SUPER_ADMIN (`restaurant_id = null`),
+  platforma `settings` (`contact_phone`, `contact_telegram`, `contact_note_*`)
+
+**Qabul mezoni:** `migrate:fresh --seed` xatosiz. Har restoranda aynan bitta
+`OWNER_ADMIN` bo'lishi DB darajasida ta'minlangan.
+
+**Prompt:**
+```
+PHASE 2.5 ni bajar: SaaS schema.
+docs/06-SAAS.md §2 aynan bajarilsin.
+- plans (code, name_ru, name_uz, days, price, is_active, sort_order)
+  Seed: MONTHLY 30, QUARTERLY 90, YEARLY 365 — narx 0
+- subscriptions (status: ACTIVE|EXPIRING|EXPIRED|SUSPENDED|TRIAL)
+- subscription_payments — plan_code/name_ru/name_uz/days SNAPSHOT ustunlari bilan.
+  MUHIM: to'lov tarixi plans jadvaliga JOIN qilmasin, snapshot ishlatsin
+- restaurants ustunlari + deleted_at (SoftDeletes)
+- users.role: SUPER_ADMIN | OWNER_ADMIN | ADMIN | WAITER
+  Har restoranda aynan bitta OWNER_ADMIN — generated column + UNIQUE
+- settings.restaurant_id nullable, UNIQUE(restaurant_id, key)
+- SUPER_ADMIN seeder (restaurant_id = null)
+Faqat PHASE 2.5.
 ```
 
 ---
@@ -198,6 +243,42 @@ PHASE 6 ni bajar: Admin panel.
 - Policy orqali authorization
 - Sidebar: Dashboard, Buyurtmalar, Stollar, Menyu, Afitsantlar, To'lovlar, Hisobotlar, Xarajatlar, Bildirishnomalar, Sozlamalar
 Real-time HALI YO'Q (PHASE 9). Faqat PHASE 6.
+```
+
+---
+
+## PHASE 6.5 — OBUNA NAZORATI (SUBSCRIPTION MIDDLEWARE)
+
+**Vazifa:** `docs/06-SAAS.md` §3, §4, §5 — obuna holati va bloklash.
+
+**Natija:**
+- `CheckSubscription` middleware: `/admin/*`, `/waiter/*`, `/t/*`
+  Istisno: `/auth/login`, `/admin/subscription`, `/super/*`
+- Kunlik scheduler: `expires_at` bo'yicha ACTIVE → EXPIRING (≤5 kun) → EXPIRED
+- EXPIRED holati (§4 jadvali aynan):
+  customer "Restoran vaqtincha ishlamayapti" · waiter login qila olmaydi ·
+  admin faqat "To'lov" sahifasini ko'radi
+- **Grace period 3 kun** — admin panel read-only (hisobot yuklab olish uchun)
+- Admin panelda "To'lov" sahifasi: holat, tariflar (`plans` dan),
+  aloqa ma'lumotlari (`settings` dan) — hech biri hardcode emas
+- `POST /admin/subscription/request` — so'rov yuborish (to'lov emas)
+
+**Qabul mezoni:** EXPIRED restoranda 3 ta rol ham §4 jadvalidagidek xatti-harakat
+qiladi. Ma'lumot **o'chirilmaydi**. To'langach hammasi qaytadi.
+
+**Prompt:**
+```
+PHASE 6.5 ni bajar: obuna nazorati.
+docs/06-SAAS.md §3, §4, §5 aynan.
+- SubscriptionService: holat hisoblash, expires_at bo'yicha status
+- CheckSubscription middleware + istisno route'lar
+- Kunlik scheduler command (cPanel cron bilan yuriladi)
+- Grace period 3 kun: EXPIRED bo'lgach admin panel read-only
+- Admin "To'lov" sahifasi: plans va settings dan o'qiydi, hardcode YO'Q
+- POST /admin/subscription/request
+- Feature testlar: TRIAL tugashi, EXPIRING, EXPIRED, grace period,
+  har rol uchun bloklash
+Faqat PHASE 6.5.
 ```
 
 ---
@@ -371,6 +452,81 @@ Faqat PHASE 13.
 
 ---
 
+## PHASE 13.5 — SUPER ADMIN PANELI
+
+**Vazifa:** `docs/06-SAAS.md` §9 va §11 — platforma boshqaruvi.
+
+**Natija:**
+- Alohida frontend app: `frontend/super/` → `super.itcode.uz`
+- Dashboard: jami/faol/tugayapti/tugagan restoran, bu oy tushum
+- Restoranlar ro'yxati + kartochka (Ma'lumot / Obuna / To'lov tarixi /
+  Limitlar / Statistika)
+- **Yangi restoran yaratish:** restoran + OWNER_ADMIN useri + N ta stol +
+  TRIAL 7 kun. **Demo kategoriya/mahsulot QO'YILMAYDI** (§9)
+- Obunani faollashtirish: `expires_at = max(now, eski expires_at) + plan.days`
+- `plans` CRUD — nom (ru+uz), kun, narx, faol/nofaol
+- Limitlar (`max_tables` / `max_products` / `max_waiters`) har restoran uchun
+- Platforma `settings`: `contact_phone`, `contact_telegram`, `contact_note_*`
+- **Arxivlash** (soft delete) va **butunlay o'chirish** (§11) —
+  nomini yozib tasdiqlash bilan
+- "Admin sifatida kirish" (impersonation) → `activity_logs`
+
+**Qabul mezoni:** super admin restoran yarata, obunani uzaytira, arxivlay va
+tiklay oladi. Butunlay o'chirish faqat arxivlangan restoran uchun ishlaydi.
+
+**Prompt:**
+```
+PHASE 13.5 ni bajar: SUPER ADMIN paneli.
+docs/06-SAAS.md §9 va §11 aynan.
+- frontend/super/ — yangi Vite app
+- /api/v1/super/* route'lar, faqat SUPER_ADMIN
+- restaurant_id global scope faqat /super/* da chetlab o'tiladi, boshqa joyda YO'Q
+- Yangi restoran: restoran + OWNER_ADMIN + stollar + TRIAL 7 kun
+  DEMO KATEGORIYA/MAHSULOT QO'YMA — bo'sh menyu (javob 8)
+- Obuna faollashtirish: expires_at = max(now, eski expires_at) + plan.days
+  subscription_payments ga SNAPSHOT bilan yozuv
+- plans CRUD, limitlar, platforma settings
+- Arxivlash + butunlay o'chirish (nom yozib tasdiqlash, rasmlar ham o'chadi)
+- Impersonation + activity_logs
+- Testlar: obuna uzaytirish formulasi, arxiv/tiklash, hard delete cheklovi
+Faqat PHASE 13.5.
+```
+
+---
+
+## PHASE 13.6 — XABARNOMALAR VA TELEGRAM
+
+**Vazifa:** `docs/06-SAAS.md` §6.
+
+**Natija:**
+- Kunlik scheduler: 5, 4, 3, 2, 1 kun qolganda va tugagan kuni xabar
+- Restoran adminiga: admin panelda **yopib bo'lmaydigan banner** + Telegram
+- SUPER_ADMIN ga: super panelda ro'yxat + Telegram kunlik xulosa
+- **Telegram bot yangi yaratiladi**, `.env` → `TELEGRAM_BOT_TOKEN`
+- Admin panelda "Telegramni ulash" → deep link `/start <token>` →
+  `restaurants.owner_telegram_chat_id`
+- Matnlar `lang/{ru,uz}/` da — hardcode yo'q
+
+**Qabul mezoni:** obuna tugashiga 3 kun qolganda admin banner ko'radi va
+Telegram xabar keladi. Bir kun uchun bir marta yuboriladi (takror emas).
+
+**Prompt:**
+```
+PHASE 13.6 ni bajar: xabarnomalar va Telegram.
+docs/06-SAAS.md §6 aynan.
+- TelegramService — yangi bot, TELEGRAM_BOT_TOKEN .env dan
+- "Telegramni ulash": deep link /start <token> -> chat_id saqlanadi
+- Kunlik scheduler: 5,4,3,2,1 kun va tugagan kuni
+  MUHIM: bir kun uchun bir marta (takrorlanmasin)
+- Admin panelda yopib bo'lmaydigan banner
+- SUPER_ADMIN ga kunlik xulosa
+- Barcha matn lang/ru va lang/uz da
+- Queue: database driver (Redis yo'q), cron bilan yuriladi
+Faqat PHASE 13.6.
+```
+
+---
+
 ## PHASE 14 — XAVFSIZLIK VA LOG
 
 **Prompt:**
@@ -386,6 +542,14 @@ PHASE 14 ni bajar: xavfsizlik.
 - Customer price/total/restaurant_id/waiter_id/status yubora olmasligi test bilan
 Faqat PHASE 14.
 ```
+
+**SaaS qo'shimchasi (docs/06-SAAS.md §10):** multi-tenant izolyatsiya testi
+**har bir endpoint bo'yicha** — Restoran A admini Restoran B ning
+order / product / table / report / payment / waiter'iga murojaat qilsin →
+hammasi 403/404. Data-provider bilan barcha admin endpointi qoplansin.
+Qo'shimcha: fayl yo'llari `storage/products/{restaurant_id}/...`,
+broadcast kanal auth'ida restoran tekshiruvi, `settings` da
+`restaurant_id IS NULL` istisnosi boshqa jadvalga tarqalmasligi.
 
 ---
 
@@ -428,10 +592,12 @@ Faqat PHASE 16.
 | 0 | Tayyorgarlik | ⬜ |
 | 1 | Project setup | ⬜ |
 | 2 | Database | ⬜ |
+| 2.5 | SaaS schema | ⬜ |
 | 3 | Customer PWA | ⬜ |
 | 4 | Session tizimi | ⬜ |
 | 5 | Order tizimi | ⬜ |
 | 6 | Admin panel | ⬜ |
+| 6.5 | Obuna nazorati | ⬜ |
 | 7 | Waiter PWA | ⬜ |
 | 8 | Auto assignment | ⬜ |
 | 9 | Real-time | ⬜ |
@@ -439,6 +605,8 @@ Faqat PHASE 16.
 | 11 | Afitsant chaqiruvi | ⬜ |
 | 12 | To'lov / session yopish | ⬜ |
 | 13 | Hisobotlar | ⬜ |
+| 13.5 | Super admin paneli | ⬜ |
+| 13.6 | Xabarnomalar / Telegram | ⬜ |
 | 14 | Xavfsizlik | ⬜ |
 | 15 | Testing | ⬜ |
 | 16 | Production | ⬜ |

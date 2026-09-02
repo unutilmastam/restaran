@@ -93,6 +93,47 @@
     "FORBIDDEN": "Bu amal uchun ruxsatingiz yo'q",
     "NOT_FOUND": "Topilmadi",
     "TOO_MANY_REQUESTS": "Juda ko'p so'rov yuborildi. Biroz kuting.",
-    "SERVER_ERROR": "Serverda xatolik yuz berdi"
+    "SERVER_ERROR": "Serverda xatolik yuz berdi",
+    "LIMIT_EXCEEDED": "Limitga yetdingiz. Kengaytirish uchun bog'laning.",
+    "SUBSCRIPTION_EXPIRED": "Restoran obunasi tugagan",
+    "SUBSCRIPTION_SUSPENDED": "Restoran vaqtincha to'xtatilgan",
+    "RESTAURANT_UNAVAILABLE": "Restoran vaqtincha ishlamayapti",
+    "RESTAURANT_ARCHIVED": "Restoran arxivlangan",
+    "OWNER_ADMIN_PROTECTED": "Restoran egasining hisobini o'chirib bo'lmaydi",
+    "CONFIRMATION_MISMATCH": "Tasdiqlash matni mos kelmadi"
+  },
+  "subscription": {
+    "status_trial": "Sinov muddati",
+    "status_active": "Faol",
+    "status_expiring": "Tugayapti",
+    "status_expired": "Tugagan",
+    "status_suspended": "To'xtatilgan",
+    "title": "Obuna",
+    "expires_at": "Tugash sanasi",
+    "days_left": "{{count}} kun qoldi",
+    "choose_plan": "Tarifni tanlang",
+    "contact_for_payment": "To'lov uchun bog'laning",
+    "request_sent": "So'rov yuborildi",
+    "send_request": "So'rov yuborish",
+    "restaurant_unavailable": "Restoran vaqtincha ishlamayapti"
+  },
+  "super": {
+    "title": "Super admin paneli",
+    "restaurants": "Restoranlar",
+    "new_restaurant": "Yangi restoran",
+    "plans": "Tariflar",
+    "payments": "To'lovlar",
+    "requests": "So'rovlar",
+    "limits": "Limitlar",
+    "platform_settings": "Platforma sozlamalari",
+    "activate": "Faollashtirish",
+    "suspend": "To'xtatish",
+    "archive": "Arxivlash",
+    "restore": "Tiklash",
+    "delete_forever": "Butunlay o'chirish",
+    "delete_confirm_hint": "Tasdiqlash uchun restoran nomini yozing",
+    "login_as_admin": "Admin sifatida kirish",
+    "total_restaurants": "Jami restoran",
+    "monthly_revenue": "Bu oy tushum"
   }
 }

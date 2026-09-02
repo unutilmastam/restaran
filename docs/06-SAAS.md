@@ -11,14 +11,35 @@ To'lov **onlayn emas** — qo'lda tasdiqlanadi (§5).
 ```
 SUPER_ADMIN  (platforma egasi — Bakhrullo)
      └── Restaurant A
-     │      ├── ADMIN   (restoran egasi)
+     │      ├── OWNER_ADMIN  (restoran egasi — birinchi admin)
+     │      ├── ADMIN        (egasi qo'shgan qo'shimcha adminlar)
      │      └── WAITER
      └── Restaurant B
+            ├── OWNER_ADMIN
             ├── ADMIN
             └── WAITER
 ```
 
-`users.role`: `SUPER_ADMIN` | `ADMIN` | `WAITER`
+`users.role`: `SUPER_ADMIN` | `OWNER_ADMIN` | `ADMIN` | `WAITER`
+
+### OWNER_ADMIN (javob 4)
+
+Bitta restoranda **bir nechta ADMIN** bo'lishi mumkin — restoran egasi ularni
+o'z admin panelidan qo'shadi.
+
+Birinchi admin — **`OWNER_ADMIN`**:
+
+| Qoida | |
+|---|---|
+| O'chirish | ❌ mumkin emas (o'zi ham, boshqa admin ham) |
+| Rolini o'zgartirish | faqat SUPER_ADMIN |
+| Boshqa admin qo'shish/o'chirish | ✅ |
+| ADMIN o'zini OWNER_ADMIN qila oladimi | ❌ |
+
+> Sabab: restoran o'zini o'zi qulflab qo'yishidan himoya. Har restoranda
+> **doim aynan bitta** OWNER_ADMIN bo'ladi — DB darajasida
+> `UNIQUE(restaurant_id, role)` `role = 'OWNER_ADMIN'` uchun ta'minlanadi
+> (generated column orqali, `table_sessions.active_key` bilan bir xil usul).
 
 **SUPER_ADMIN** `restaurant_id = null` — u hech qaysi restoranga tegishli emas, hammasini ko'radi.
 
@@ -47,8 +68,12 @@ created_at, updated_at
 id
 restaurant_id
 subscription_id
-plan
-amount
+plan_id               FK plans — ON DELETE RESTRICT
+amount                TO'LANGAN SUMMA — snapshot, hech qachon o'zgarmaydi
+plan_code_snapshot    MONTHLY / QUARTERLY / YEARLY
+plan_name_ru_snapshot
+plan_name_uz_snapshot
+plan_days_snapshot    o'sha paytdagi kun soni
 paid_at
 confirmed_by          super_admin user_id
 method                CLICK | CASH | TRANSFER | OTHER
@@ -56,23 +81,53 @@ reference             chek raqami / izoh
 created_at
 ```
 
+⚠️ **Snapshot ustunlari majburiy** (javob 1). Super admin tarif narxini yoki
+nomini o'zgartirsa, o'tgan to'lovlar tarixi va moliyaviy hisobot
+**buzilmasligi kerak**. `plans` jadvaliga JOIN qilib summa ko'rsatish
+taqiqlanadi — har doim snapshot ishlatiladi.
+
 ### restaurants — qo'shiladigan ustunlar
 ```
-subscription_status   ACTIVE | EXPIRING | EXPIRED | SUSPENDED | TRIAL
-expires_at
-owner_phone
-owner_telegram
-max_tables
-max_products
-max_waiters
+slug                      unique — §7 domen strategiyasi
+subscription_status       ACTIVE | EXPIRING | EXPIRED | SUSPENDED | TRIAL
+expires_at                DATETIME (sana emas — §3)
+owner_phone               restoran egasining raqami (SUPER_ADMIN qo'ng'iroq qiladi)
+owner_telegram            @username
+owner_telegram_chat_id    "Telegramni ulash" bosilgach to'ladi (§6, javob 3)
+logo                      restoran egasi o'zi yuklaydi (javob 8)
+max_tables                default 30
+max_products              default 100
+max_waiters               default 10
 suspended_reason
+deleted_at                ARXIVLASH — soft delete (§11, javob 5)
 ```
 
-### plans (yoki config faylda)
+> `owner_phone` / `owner_telegram` — bu **restoran egasining** aloqasi,
+> SUPER_ADMIN u bilan bog'lanishi uchun. Restoranga ko'rsatiladigan
+> **platformaning** aloqa ma'lumotlari boshqa joyda — §12 ga qarang.
+
+### plans (javob 1)
+
+**Narxlar kodda YOZILMAYDI** — faqat DB'da, SUPER_ADMIN panelidan tahrirlanadi.
+
 ```
-id, code, name_ru, name_uz, days, price, is_active
+id, code, name_ru, name_uz, days, price, is_active, sort_order
+created_at, updated_at
 ```
-Boshlang'ich: `MONTHLY 30 kun`, `QUARTERLY 90 kun`, `YEARLY 365 kun`.
+
+Tahrirlanadigan maydonlar: **nom (ru+uz), kun soni, narx, faol/nofaol**.
+
+Boshlang'ich seed — narx `0`, super admin keyin kiritadi:
+
+| code | days | price |
+|---|---|---|
+| `MONTHLY` | 30 | 0 |
+| `QUARTERLY` | 90 | 0 |
+| `YEARLY` | 365 | 0 |
+
+⚠️ **Narx o'zgarganda eski to'lovlar o'zgarmaydi** — `subscription_payments`
+to'langan summani **snapshot** sifatida saqlaydi (quyida).
+Bu `order_items.price_snapshot` bilan bir xil printsip (CLAUDE.md §3.3).
 
 ---
 
@@ -88,6 +143,19 @@ SUPER_ADMIN qo'lda           → SUSPENDED (majburiy yopish)
 ```
 
 **MUHIM:** `expires_at` sana emas, aniq vaqt (`datetime`). Restoran soat 14:00 da to'lasa, keyingi yil soat 14:00 da tugaydi.
+
+### TRIAL (javob 2)
+
+Yangi restoran yaratilganda **avtomatik**:
+
+```
+subscription_status = TRIAL
+expires_at          = now() + 7 kun
+```
+
+Trial tugagach **alohida oqim yo'q** — oddiy `EXPIRED` holatiga o'tadi va §4
+dagi qoidalar aynan ishlaydi (grace period ham). Trial faqat boshlanish
+usuli, alohida holat emas.
 
 ---
 
@@ -129,14 +197,19 @@ TARIFNI TANLANG
 └──────────────────────────────┘
 
 TO'LOV UCHUN BOG'LANING
-📞 +998 XX XXX XX XX
-✈️  @telegram_username
+📞 {settings.contact_phone}
+✈️  {settings.contact_telegram}
+   {settings.contact_note}          ← ru yoki uz, tilga qarab
 
 1. Yuqoridagi raqamga qo'ng'iroq qiling
 2. Tarifni ayting
 3. Click orqali kartaga to'lov qiling
 4. To'lov tasdiqlangach tizim avtomatik ochiladi
 ```
+
+⚠️ Bu maydonlar **hardcode qilinmaydi** (javob 6) — `settings` jadvalidan
+o'qiladi, SUPER_ADMIN panelidan o'zgartiriladi. §12 ga qarang.
+Tariflar ham `plans` dan keladi, kodda yozilmaydi (javob 1).
 
 Tugma bosilganda **so'rov yuboriladi** (`POST /admin/subscription/request`) — SUPER_ADMIN panelida "Kutilayotgan so'rovlar" ro'yxatiga tushadi. Bu shunchaki bildirishnoma, to'lov emas.
 
@@ -226,6 +299,13 @@ max_waiters    default 10
 
 Limitdan oshsa: `422 LIMIT_EXCEEDED` + "Limitga yetdingiz. Kengaytirish uchun bog'laning."
 
+**Tasdiqlandi (javob 7):** limit **tarifga bog'liq emas**. Uzoq muddatli tarif
+= arzonroq narx, limit farqi **yo'q**. Har restoran uchun SUPER_ADMIN alohida
+o'zgartiradi.
+
+Xato matni `lang/{ru,uz}/errors.php` da (`LIMIT_EXCEEDED`), aloqa ma'lumoti
+§12 dagi `settings` dan qo'shiladi.
+
 ---
 
 ## 9. SUPER ADMIN PANELI
@@ -254,7 +334,29 @@ SO'ROVLAR
   Kutilayotgan tarif so'rovlari
 ```
 
-**Yangi restoran yaratish** bitta amalda: restoran + admin useri + N ta stol (nfc_token bilan) + demo kategoriya/mahsulot + TRIAL obuna (7 kun).
+**Yangi restoran yaratish** bitta amalda:
+
+```
+restoran yozuvi (nom, slug, telefon, timezone)
++ OWNER_ADMIN useri (login + boshlang'ich parol)
++ N ta stol (nfc_token bilan)
++ TRIAL obuna (7 kun)
+```
+
+⚠️ **DEMO KATEGORIYA/MAHSULOT QO'YILMAYDI** (javob 8).
+Restoran **bo'sh menyu** bilan boshlanadi.
+
+Nima kim tomonidan kiritiladi:
+
+| Nima | Kim |
+|---|---|
+| Restoran yozuvi, admin useri, stollar, limitlar, obuna | SUPER_ADMIN |
+| Restoran **nomi va logotipi** | restoran egasi |
+| Kategoriya, mahsulot, rasm, narx | restoran egasi |
+
+> `docs/03-PHASES.md` PHASE 2 dagi 5 kategoriya + 25 mahsulot seeder
+> **faqat local development/demo** uchun qoladi — yangi restoran yaratish
+> oqimida ishlatilmaydi.
 
 **"Admin sifatida kirish"** (impersonation) — muammoni tekshirish uchun. Har safar `activity_logs` ga yoziladi.
 
@@ -275,7 +377,106 @@ Majburiy:
 
 ---
 
-## 11. YANGI PHASE'LAR
+## 11. RESTORAN O'CHIRISH (javob 5)
+
+Ikki xil amal. **Ular aralashtirilmaydi.**
+
+### a) ARXIVLASH — soft delete, DEFAULT variant
+
+```
+restaurants.deleted_at = now()
+```
+
+| | |
+|---|---|
+| Ma'lumot | **qoladi** — orderlar, to'lovlar, hisobotlar hammasi joyida |
+| Customer NFC | stol topilmaydi (`INVALID_TABLE`) |
+| Admin / Waiter | login qila olmaydi |
+| SUPER_ADMIN | ro'yxatda "Arxivlangan" filtri ostida ko'radi |
+| Qayta tiklash | ✅ `deleted_at = null` — hammasi qaytadi |
+
+Bu **oddiy holat**. SUPER_ADMIN "O'chirish" bosganda **shu** bajariladi.
+
+### b) BUTUNLAY O'CHIRISH — hard delete
+
+Faqat **allaqachon arxivlangan** restoran uchun mumkin. Arxivlanmagan
+restoranni to'g'ridan-to'g'ri butunlay o'chirib bo'lmaydi.
+
+O'chadi:
+- barcha bog'liq DB yozuvlari (order, payment, session, product, ...)
+- `storage/products/{restaurant_id}/` — **barcha rasmlar**
+- restoran logotipi
+
+Tasdiqlash — **restoran NOMINI qo'lda yozish** talab qilinadi:
+
+```
+┌───────────────────────────────────────────────┐
+│  ⚠️  BUTUNLAY O'CHIRISH                        │
+│                                               │
+│  Bu amalni ORQAGA QAYTARIB BO'LMAYDI.         │
+│  Barcha buyurtma, to'lov va rasm o'chadi.     │
+│                                               │
+│  Tasdiqlash uchun restoran nomini yozing:     │
+│  "Osiyo Milliy Taomlari"                      │
+│  ┌─────────────────────────────────────────┐  │
+│  │                                         │  │
+│  └─────────────────────────────────────────┘  │
+│                    [ BEKOR ]  [ O'CHIRISH ]   │
+└───────────────────────────────────────────────┘
+```
+
+Nom aynan mos kelmasa tugma **ishlamaydi**.
+
+`activity_logs` ga yoziladi: kim, qachon, qaysi restoran, nechta order/
+payment/product o'chdi (`old_values` da xulosa).
+
+> ⚠️ `activity_logs.restaurant_id` o'chirilgan restoranga ishora qiladi —
+> shuning uchun bu FK `ON DELETE SET NULL` bo'ladi, aks holda audit yozuvi
+> ham o'chib ketadi.
+
+---
+
+## 12. PLATFORMA SOZLAMALARI (javob 6)
+
+Restoranga ko'rsatiladigan **platformaning** aloqa ma'lumotlari:
+
+| Kalit | Izoh |
+|---|---|
+| `contact_phone` | to'lov uchun qo'ng'iroq raqami |
+| `contact_telegram` | `@username` |
+| `contact_note_ru` | qo'shimcha izoh — rus tilida |
+| `contact_note_uz` | qo'shimcha izoh — o'zbek tilida |
+
+SUPER_ADMIN panelidan o'zgartiriladi. To'lov sahifasi (§5) shu qiymatlarni
+ko'rsatadi — kodda hardcode qilinmaydi.
+
+### `settings` jadvali ikki darajali
+
+`docs/05-PHASE0-PLAN.md` da `settings` restoran darajasida rejalashtirilgan
+edi (ovoz on/off, volume). Platforma sozlamalari esa hech qaysi restoranga
+tegishli emas, shuning uchun:
+
+```
+settings
+  id
+  restaurant_id   NULLABLE  ← null = PLATFORMA darajasi
+  key
+  value
+  UNIQUE(restaurant_id, key)
+```
+
+| `restaurant_id` | Kim o'zgartiradi | Misol |
+|---|---|---|
+| `null` | SUPER_ADMIN | `contact_phone`, `contact_telegram` |
+| `5` | restoran admini | `voice_enabled`, `voice_volume` |
+
+⚠️ `BelongsToRestaurant` global scope `settings` uchun **`restaurant_id IS
+NULL` yozuvlarini ham** ko'rsatishi kerak, aks holda to'lov sahifasi bo'sh
+qoladi. Bu yagona istisno — boshqa jadvallarda scope qat'iy.
+
+---
+
+## 13. YANGI PHASE'LAR
 
 `docs/03-PHASES.md` ga qo'shiladi:
 
@@ -297,10 +498,29 @@ Multi-tenant izolyatsiya testi — har bir endpoint bo'yicha.
 
 ---
 
-## 12. SAVOLLAR (javob kerak)
+## 14. JAVOBLAR (2026-09-02 — yopildi)
 
-1. Tarif narxlari qancha? (1 oy / 3 oy / 1 yil)
-2. Yangi restoranga trial beriladimi? Necha kun?
-3. Telegram bot bormi yoki yangi yaratiladimi?
-4. Restoran o'z admin userini o'zi qo'sha oladimi (bir nechta admin) yoki faqat bittami?
-5. Restoran o'chirilganda ma'lumot butunlay o'chsinmi yoki arxivda qolsinmi?
+§12 dagi 5 ta savol va qo'shimcha 3 ta qaror.
+
+| № | Savol | Javob | Qayerda |
+|---|---|---|---|
+| 1 | Tarif narxlari qancha? | Kodda emas — `plans` jadvalida, SUPER_ADMIN kiritadi. Seed: MONTHLY 30 / QUARTERLY 90 / YEARLY 365 kun, narx `0`. To'langan summa snapshot | §2 |
+| 2 | Trial beriladimi? | **7 kun**, avtomatik. Tugagach oddiy EXPIRED oqimi | §3 |
+| 3 | Telegram bot? | **Yangi bot.** `.env` → `TELEGRAM_BOT_TOKEN`. "Telegramni ulash" → `/start <token>` → `chat_id` | §6, PHASE 13.6 |
+| 4 | Bir nechta admin? | **Ha.** Birinchisi `OWNER_ADMIN` — o'chirib bo'lmaydi, faqat SUPER_ADMIN o'zgartiradi | §1 |
+| 5 | O'chirish: butunlay yoki arxiv? | **Ikkalasi.** Arxivlash — default. Butunlay o'chirish faqat arxivlangan restoran uchun, nomini yozib tasdiqlash bilan | §11 |
+| 6 | *(qo'shimcha)* Aloqa ma'lumotlari | `settings` da: `contact_phone`, `contact_telegram`, `contact_note` (ru+uz). SUPER_ADMIN o'zgartiradi | §12 |
+| 7 | *(qo'shimcha)* Limitlar | Restoranga biriktiriladi, tarifga emas. Default 30/100/10. Uzoq tarif = arzon narx, limit farqi yo'q | §8 |
+| 8 | *(qo'shimcha)* Kontentni kim kiritadi | Restoran egasi (menyu, rasm, logo, nom). SUPER_ADMIN faqat restoran + admin useri. **Demo kontent qo'yilmaydi** | §9 |
+
+### Javoblar tufayli o'zgargan joylar
+
+| Joy | O'zgarish |
+|---|---|
+| §1 | `OWNER_ADMIN` roli qo'shildi (4 ta rol) |
+| §2 `plans` | "yoki config faylda" olib tashlandi — faqat DB |
+| §2 `subscription_payments` | snapshot ustunlari qo'shildi |
+| §2 `restaurants` | `deleted_at`, `logo`, `owner_telegram_chat_id`, `slug` |
+| §5 | to'lov sahifasidagi telefon/telegram `settings` dan |
+| §9 | **demo kategoriya/mahsulot olib tashlandi** — bu javob 8 bilan bevosita ziddiyat edi |
+| §11, §12 | yangi bo'limlar |
