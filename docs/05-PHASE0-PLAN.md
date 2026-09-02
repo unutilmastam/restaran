@@ -217,11 +217,12 @@ Biznes jadvallari (`docs §5` dagi 13 ta + 3 ta yangi):
 | 14 | **`order_counters`** | ❌ YANGI | kunlik `order_number` race-safe (§2.5) |
 | 15 | **`push_subscriptions`** | ❌ YANGI | waiter web push (PHASE 7 talabi) |
 | 16 | **`settings`** | ❌ YANGI | restoran sozlamalari (ovoz on/off, volume, draft TTL) — `restaurant_id + key + value` |
+| 17 | **`session_devices`** | ❌ YANGI | SAVOL 9: bir stolda bir necha telefon bitta sessionni bo'lishadi — har qurilma o'z `customer_token_hash` ini oladi |
 
 Laravel infratuzilma jadvallari (Redis yo'qligi uchun **majburiy**):
 `personal_access_tokens`, `cache`, `cache_locks`, `jobs`, `failed_jobs`, `job_batches`, `sessions`.
 
-→ **Jami 23 migration** (`docs/03-PHASES.md` PHASE 2 da "13 ta" deb yozilgan — cPanel tufayli yangilanadi).
+→ **Jami 24 migration** (`docs/03-PHASES.md` PHASE 2 da "13 ta" deb yozilgan — cPanel va SAVOL 9 tufayli yangilanadi).
 
 ### 2.3 `table_sessions` — concurrency (`docs §04` "Concurrency" testi)
 
@@ -466,7 +467,10 @@ Payload'da **hech qachon** to'liq model yuborilmaydi — faqat kerakli maydonlar
 
 ### 4.2 Backend
 
-- **Framework:** PestPHP (Laravel 11 default). `RefreshDatabase`.
+- **Framework:** PHPUnit 11 (Laravel 11 skeleton bilan keladi). `RefreshDatabase`.
+  > Reja avval PestPHP edi. Pest composer plugin talab qiladi, u esa CI/agent
+  > muhitida `allow-plugins` tufayli ishonchsiz. PHPUnit qo'shimcha qatlamsiz
+  > ishlaydi va bir xil imkoniyat beradi — PHASE 1 da shu tanlandi.
 - **DB:** ⚠️ **SQLite in-memory ishlatilmaydi.** Sabab: generated column + `UNIQUE(active_key)`, `lockForUpdate`, `FOR UPDATE` concurrency testlari, `DECIMAL` xatti-harakati — bularning hammasi MySQL'ga bog'liq. Test DB = **lokal MySQL 8** (`smart_restaurant_test`). CI da `services: mysql:8`.
 - **Fabrikalar:** har bir model uchun factory + `state()` lar (`OrderFactory::delivered()`, `SessionFactory::waitingPayment()`).
 
@@ -550,24 +554,27 @@ Deploy qadami **yo'q** (PHASE 16 gacha).
 
 ---
 
-## 5. NOANIQ JOYLAR — SAVOLLAR
+## 5. SAVOLLARGA JAVOBLAR (2026-09-02 da yopildi)
 
-Bularsiz PHASE 1–2 boshlanmasligi kerak.
-
-| № | Savol | Nega muhim | Mening tavsiyam |
+| № | Savol | Qaror | Manba |
 |---|---|---|---|
-| **1** | Customer real-time: **polling** (variant A) yoki **per-session public kanal** (variant B)? | Pusher free = 100 connection. `nfc_token` kanali doimiy va xavfsiz emas | **A — polling.** Admin/waiter WS da qoladi |
-| **2** | Frontend joylashuvi: `admin.domain.uz` (subdomain) yoki `domain.uz/admin` (subdirectory)? | Vite `base`, CORS, `.htaccess` — PHASE 1 da hal bo'lishi kerak | **Subdomain** — CORS va SPA routing sodda |
-| **3** | `customer_token` DB da **hash** qilinsinmi (`docs §5` da ochiq matn ko'rsatilgan)? | Bearer token, `docs §13` xavfsizlik talabi | **Ha, hash** (`customer_token_hash`) |
-| **4** | Bitta stolda **2 ta har xil telefon** draft order qoldirsa, to'lovdan keyin nima bo'ladi? | `docs §12` faqat 1 ta draft holatini yozgan | Barcha draftlar **bitta yangi sessionga** qo'shiladi, `guest_count` = eng erta draftniki, admin tuzatishi mumkin |
-| **5** | `order_number`: kunlik reset (`#0042`) yoki umumiy (`#10542`)? | DB unique constraint shakli | **Kunlik reset** — admin gapirishi qulay |
-| **6** | `products.discount` va `orders.discount` — **foiz** yoki **summa**? Kim qo'yadi? | Total formulasi va order transaction'iga bevosita ta'sir qiladi | `products.discount` = **foiz** (0–100), `orders.discount` = admin qo'yadigan **summa**. Tasdiq kerak |
-| **7** | Draft order muddati — **2 soat** to'g'rimi? | Eski cart tirilib ketmasligi uchun | 2 soat |
-| **8** | Mijoz `POST /orders` da **izoh (comment)** yoza oladimi? | `orders` jadvalida ustun yo'q | Ha, `orders.comment` va `order_items.comment` qo'shilsin |
-| **9** | Bitta stolda **bir necha mijoz telefoni** bir sessionga qo'shila oladimi (birgalikda buyurtma)? | `customer_token` bitta qurilmaga beriladi | Ha — NFC skanerlagan har bir telefon **mavjud** ACTIVE sessionga ulanadi va o'z tokenini oladi (`session_devices` jadvali kerak bo'lishi mumkin) |
-| **10** | `payments` — **qisman to'lov** (partial) bo'ladimi? | `paid_amount` ustuni bor, ya'ni ko'zda tutilgan | Hozircha **yo'q** — faqat to'liq to'lov. Jadval strukturasi partial'ga tayyor turadi |
-| **11** | cPanel'da **PHP versiyasi** va **MySQL/MariaDB** aniq qaysi? | Laravel 11 → PHP ≥ 8.2. MariaDB < 10.2 da generated column yo'q (§2.3) | Aniqlash kerak — hosting cPanel → MultiPHP Manager |
-| **12** | Pusher akkaunti bormi (app_id/key/secret/cluster)? | PHASE 9 da kerak, lekin `.env.example` PHASE 1 da yoziladi | `mt1` yoki `eu` cluster |
+| **1** | Customer real-time | **Polling** (4 sek). Admin + waiter Pusher'da qoladi. `public-table.{nfc_token}` kanali olib tashlandi | tavsiya qabul qilindi |
+| **2** | Frontend joylashuvi | **Subdomain**: `api.` / `admin.` / `waiter.` + root = customer. `VITE_BASE` env orqali beriladi, subdirectory'ga o'tish kod o'zgartirmasdan mumkin | tavsiya qabul qilindi |
+| **3** | `customer_token` | **Hash** saqlanadi (`customer_token_hash`, SHA-256, unique). Mijozga plaintext faqat bir marta qaytariladi | tavsiya qabul qilindi |
+| **4** | Bir stolda 2 ta draft | Barcha muddati o'tmagan draftlar **bitta yangi sessionga** biriktiriladi; `guest_count` eng erta draftniki, admin tuzatishi mumkin | tavsiya qabul qilindi |
+| **5** | `order_number` | **Kunlik reset**: `#0001`, `order_counters` jadvali orqali race-safe | tavsiya qabul qilindi |
+| **6** | Discount | `products.discount` = **foiz** (0–100), `orders.discount` = admin qo'yadigan **summa** | tavsiya qabul qilindi |
+| **7** | Draft muddati | **120 daqiqa** (`SR_DRAFT_TTL_MINUTES`) | tavsiya qabul qilindi |
+| **8** | Order izohi | **Ha** — `orders.comment` va `order_items.comment` | tavsiya qabul qilindi |
+| **9** | Bir stolda bir necha telefon | **Bitta sessionni bo'lishadi.** Har telefon mavjud ACTIVE sessionga ulanadi va o'z tokenini oladi → `session_devices` jadvali kerak (PHASE 2 da 17-jadval) | tavsiya qabul qilindi |
+| **10** | Qisman to'lov | **Yo'q** — faqat to'liq to'lov. `paid_amount` ustuni kelajak uchun qoladi | tavsiya qabul qilindi |
+| **11** | Hosting | **PHP 8.3 (`ea-php83`), MySQL 8.0.44, utf8mb4.** PHP-FPM hozircha o'chirilgan. `active_key` generated column yechimi tasdiqlandi | foydalanuvchi tasdiqladi |
+| **12** | Pusher | Akkaunt hali yaratilmagan, PHASE 9 gacha kerak emas. `.env.example` da `PUSHER_*` bo'sh qiymat bilan turadi, kod pusher driver'ga tayyor | foydalanuvchi tasdiqladi |
+
+> **Eslatma:** 11 va 12 foydalanuvchi tomonidan aniq javob berildi. 1–10 uchun
+> yuqoridagi tavsiyalar qabul qilingan deb olindi. Agar biror qaror boshqacha
+> bo'lishi kerak bo'lsa — **PHASE 2 (DB) boshlanishidan oldin** ayting: 4, 5, 6,
+> 9 va 10 to'g'ridan-to'g'ri migration strukturasiga ta'sir qiladi.
 
 ---
 
@@ -576,7 +583,7 @@ Bularsiz PHASE 1–2 boshlanmasligi kerak.
 | Phase | O'zgarish |
 |---|---|
 | **1** | Redis → `database` cache/queue. Reverb → Pusher. `.env.example` da Pusher kalitlari. `frontend/` npm workspaces. **i18n parity testi shu yerda yoziladi** |
-| **2** | "13 ta migration" → **23 ta** (16 biznes + 7 infratuzilma). `DRAFT` status, `order_counters`, `push_subscriptions`, `settings` qo'shildi |
+| **2** | "13 ta migration" → **24 ta** (17 biznes + 7 infratuzilma). `DRAFT` status, `order_counters`, `push_subscriptions`, `settings`, `session_devices` qo'shildi |
 | **5** | Draft order `status = DRAFT` (session_id=null bilan birga) |
 | **9** | Reverb sozlash → Pusher sozlash. Customer kanali olib tashlanadi (SAVOL 1 ga qarab) |
 | **12** | Draft chiqishida `EXPIRED` draftlar e'tiborga olinmaydi |

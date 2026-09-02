@@ -1,0 +1,39 @@
+# --------------------------------------------------------------------------
+# Bog'liqliklar — serverga HECH QACHON yuklanmaydi (1 GB disk, docs/05 §0).
+# Backend: composer install --no-dev serverda yuriladi.
+# Frontend: build lokalda/CI da, serverga faqat dist chiqadi.
+# --------------------------------------------------------------------------
+node_modules/
+vendor/
+
+# Build artefaktlari
+dist/
+build/
+*.tsbuildinfo
+
+# Muhit
+.env
+.env.*
+!.env.example
+
+# Laravel
+/backend/storage/*.key
+/backend/storage/app/public/products/
+/backend/storage/framework/cache/data/*
+/backend/storage/logs/*
+/backend/bootstrap/cache/*.php
+/backend/public/storage
+/backend/public/hot
+/backend/.phpunit.result.cache
+/backend/.phpunit.cache/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Lokal
+/scratch/
+npm-debug.log*

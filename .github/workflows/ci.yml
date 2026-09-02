@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# Deploy qadami ATAYIN yo'q — cPanel'ga chiqarish PHASE 16 da qo'lda
+# (docs/05-PHASE0-PLAN.md §1).
+
+jobs:
+  backend:
+    name: Backend (PHP 8.3, MySQL 8)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: smart_restaurant_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          # Hosting bilan bir xil versiya (cPanel ea-php83).
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql, gd, intl, zip
+          coverage: none
+
+      - name: Composer install
+        working-directory: backend
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Prepare environment
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run tests
+        working-directory: backend
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: smart_restaurant_test
+          DB_USERNAME: root
+          DB_PASSWORD: ''
+        run: php artisan test
+
+  frontend:
+    name: Frontend (Node 22)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+
+      # i18n parity — docs/02-I18N-RU-UZ.md §10
+      - name: Test
+        working-directory: frontend
+        run: npm test
+
+      - name: Typecheck
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Build all three apps
+        working-directory: frontend
+        run: npm run build

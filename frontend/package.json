@@ -1,0 +1,40 @@
+{
+  "name": "smart-restaurant-frontend",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "shared",
+    "customer",
+    "admin",
+    "waiter"
+  ],
+  "scripts": {
+    "dev:customer": "npm run dev -w @sr/customer",
+    "dev:admin": "npm run dev -w @sr/admin",
+    "dev:waiter": "npm run dev -w @sr/waiter",
+    "build": "npm run build -w @sr/customer && npm run build -w @sr/admin && npm run build -w @sr/waiter",
+    "test": "vitest run",
+    "typecheck": "npm run --workspaces --if-present typecheck"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^22.10.7",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "jsdom": "^26.0.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.11",
+    "vitest": "^3.0.5"
+  },
+  "overrides": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5"
+  }
+}

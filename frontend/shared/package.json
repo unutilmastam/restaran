@@ -1,0 +1,24 @@
+{
+  "name": "@sr/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./i18n": "./i18n/index.ts",
+    "./api": "./api/index.ts",
+    "./types": "./types/index.ts",
+    "./format": "./format/index.ts"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "i18next": "^24.2.1",
+    "react-i18next": "^15.4.0",
+    "zustand": "^5.0.3"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
+  }
+}

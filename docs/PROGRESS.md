@@ -2,9 +2,9 @@
 
 | Phase | Nomi | Holat | Izoh |
 |---|---|---|---|
-| 0 | Tayyorgarlik | 🟡 Reja tayyor, tasdiq kutilmoqda | `docs/05-PHASE0-PLAN.md`. 12 ta savol javob kutmoqda (§5) |
-| 1 | Project setup | ⬜ | |
-| 2 | Database | ⬜ | |
+| 0 | Tayyorgarlik | ✅ Tugadi | `docs/05-PHASE0-PLAN.md`. 12 ta savol yopildi (§5) |
+| 1 | Project setup | ✅ Tugadi | Laravel 11.56 + Sanctum + Pusher · 3 ta Vite app + `@sr/shared` · i18n ru/uz · `/api/v1/health` · 13 backend + 8 frontend test yashil |
+| 2 | Database | ⬜ Keyingi | 24 migration (17 biznes + 7 infratuzilma) |
 | 3 | Customer PWA | ⬜ | |
 | 4 | Session tizimi | ⬜ | |
 | 5 | Order tizimi | ⬜ | |
@@ -30,3 +30,10 @@
 | 2026-09-02 | Redis → **`database`** cache/queue | Redis yo'q |
 | 2026-09-02 | Queue worker → **cPanel cron** | Supervisor yo'q |
 | 2026-09-02 | Disk byudjeti **1 GB** | Rasm webp+resize, log retention, `node_modules` serverga chiqmaydi |
+| 2026-09-02 | Hosting tasdiqlandi: **PHP 8.3, MySQL 8.0.44, utf8mb4** | `active_key` generated column yechimi ishlaydi |
+| 2026-09-02 | Customer real-time = **polling**, WebSocket emas | Pusher free = 100 connection; `nfc_token` doimiy kanal xavfsiz emas |
+| 2026-09-02 | Frontend **subdomain** sxemasi | `VITE_BASE` env orqali subdirectory'ga o'tish ochiq qoldi |
+| 2026-09-02 | Test framework **PHPUnit 11**, Pest emas | Pest composer plugin talab qiladi — CI/agent muhitida ishonchsiz |
+| 2026-09-02 | **Tailwind v3**, v4 emas | v4 Chrome 111+/Safari 16.4+ talab qiladi; customer PWA eski telefonlarda ham ochilishi kerak |
+| 2026-09-02 | **React 18** `overrides` bilan qulflandi | npm avtomatik React 19 tortdi, CLAUDE.md §4 esa 18 ni belgilaydi |
+| 2026-09-02 | Backendda `package.json` yo'q | Blade UI va asset build yo'q — serverda `node_modules` bo'lmaydi |

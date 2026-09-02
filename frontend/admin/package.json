@@ -1,0 +1,18 @@
+{
+  "name": "@sr/admin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5174",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --port 5174",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "@sr/shared": "*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.1.3"
+  }
+}
