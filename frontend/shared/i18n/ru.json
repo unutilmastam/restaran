@@ -63,7 +63,21 @@
     "calls": "Вызовы",
     "history": "История",
     "profile": "Профиль",
-    "greeting": "Здравствуйте, {{name}}"
+    "greeting": "Здравствуйте, {{name}}",
+    "login_title": "Панель официанта",
+    "no_orders": "Заказов нет",
+    "start_delivering": "Забрал с кухни",
+    "delivered_confirm": "Вы доставили гостю?",
+    "go_offline": "Закончить смену",
+    "go_online": "Начать смену",
+    "today_delivered": "Доставлено сегодня",
+    "active_orders": "Активные заказы",
+    "no_calls": "Вызовов нет",
+    "calls_soon": "Вызовы скоро заработают",
+    "no_history": "История пуста",
+    "swipe_hint": "Удерживайте для доставки",
+    "holding": "Удерживайте...",
+    "refresh": "Обновить"
   },
   "admin": {
     "dashboard": "Панель управления",

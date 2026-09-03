@@ -11,8 +11,8 @@
 | 5 | Order tizimi | ✅ Tugadi | Narx qayta hisoblash · idempotency · DRAFT · order lock · `order_number` · snapshot · status ekrani (polling 5s) · 22 feature + 3 concurrency test |
 | 6 | Admin panel | ✅ Tugadi | Sanctum auth · dashboard · order qabul · menyu/stol/xodim CRUD **UI bilan** · rasm yuklash (progress+preview) · QR kod · limitlar · 31 test |
 | 6.5 | Obuna nazorati | ⬜ Keyingi | `CheckSubscription`, grace period 3 kun |
-| 7 | Waiter PWA | ⬜ | |
-| 8 | Auto assignment | ⬜ | |
+| 7 | Waiter PWA | ✅ Tugadi | PIN/parol auth · order oqimi · **HoldButton** (tasodifan bosilmaydi) · tarix · profil · PWA + push tayyorligi · 19 test (haqiqiy token) |
+| 8 | Auto assignment | ⬜ Keyingi | |
 | 9 | Real-time (Pusher) | ⬜ | |
 | 10 | Ovozli bildirishnoma | ⬜ | |
 | 11 | Afitsant chaqiruvi | ⬜ | |
@@ -74,3 +74,6 @@
 | 2026-09-02 | Rasm yuklash **XHR** orqali, fetch emas | `fetch` upload progress bermaydi; sekin internetda ilova qotgandek tuyulardi |
 | 2026-09-02 | QR kutubxonasi **dinamik import** | 10 KB gz faqat QR modal ochilganda yuklanadi |
 | 2026-09-02 | `APP_CUSTOMER_URL` | NFC URL customer ilovasining domenidan quriladi, API domenidan emas |
+| 2026-09-02 | "Yetkazildi" — **bosib turish** (800 ms) | Afitsant telefonni bir qo'lda ushlab yuradi; tasodifan bosilsa buyurtma yetkazilgan deb belgilanadi va unga darhol yangisi biriktiriladi |
+| 2026-09-02 | `BUSY` statusini **qo'lda qo'yib bo'lmaydi** | U ochiq orderdan kelib chiqadi (docs/01 §3); ochiq orderi bor afitsant o'zini bo'sh deb e'lon qila olmaydi |
+| 2026-09-02 | Waiter testlari **faqat haqiqiy token bilan** | `actingAs()` PHASE 6 dagi Sanctum xatosini 30 ta testdan o'tkazib yuborgan edi |

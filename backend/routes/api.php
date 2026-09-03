@@ -13,6 +13,9 @@ use App\Http\Controllers\Api\V1\Customer\MenuController;
 use App\Http\Controllers\Api\V1\Customer\OrderController;
 use App\Http\Controllers\Api\V1\Customer\SessionController;
 use App\Http\Controllers\Api\V1\Customer\TableController;
+use App\Http\Controllers\Api\V1\Waiter\WaiterCallController;
+use App\Http\Controllers\Api\V1\Waiter\WaiterOrderController;
+use App\Http\Controllers\Api\V1\Waiter\WaiterProfileController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Middleware\RequireCustomerSession;
 use App\Http\Middleware\ResolveCustomer;
@@ -106,4 +109,26 @@ Route::middleware(['auth:sanctum', 'role:OWNER_ADMIN,ADMIN'])
         Route::post('/tables/{table}/regenerate-token', [AdminTableController::class, 'regenerateToken'])->whereNumber('table');
 
         Route::apiResource('staff', StaffController::class)->except('show');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| WAITER — docs/03-PHASES.md PHASE 7
+|--------------------------------------------------------------------------
+| Afitsant FAQAT o'ziga biriktirilgan orderlarni ko'radi va o'zgartiradi.
+*/
+Route::middleware(['auth:sanctum', 'role:WAITER'])
+    ->prefix('waiter')
+    ->group(function (): void {
+        Route::get('/profile', [WaiterProfileController::class, 'show']);
+        Route::post('/status', [WaiterProfileController::class, 'status']);
+
+        Route::get('/orders', [WaiterOrderController::class, 'index']);
+        Route::get('/history', [WaiterOrderController::class, 'history']);
+        Route::post('/orders/{order}/accept', [WaiterOrderController::class, 'accept'])->whereNumber('order');
+        Route::post('/orders/{order}/delivering', [WaiterOrderController::class, 'delivering'])->whereNumber('order');
+        Route::post('/orders/{order}/deliver', [WaiterOrderController::class, 'deliver'])->whereNumber('order');
+
+        // Chaqiruvlar — to'liq oqim PHASE 11 da.
+        Route::get('/calls', [WaiterCallController::class, 'index']);
     });

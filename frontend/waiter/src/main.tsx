@@ -13,3 +13,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <App />
   </React.StrictMode>,
 );
+
+// Service worker render'dan KEYIN — birinchi kadrni kechiktirmasin.
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  const base = import.meta.env.BASE_URL;
+
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker.register(`${base}sw.js`, { scope: base }).catch(() => undefined);
+  });
+}

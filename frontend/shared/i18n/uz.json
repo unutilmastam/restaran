@@ -57,7 +57,21 @@
     "calls": "Chaqiruvlar",
     "history": "Tarix",
     "profile": "Profil",
-    "greeting": "Salom, {{name}}"
+    "greeting": "Salom, {{name}}",
+    "login_title": "Afitsant paneli",
+    "no_orders": "Buyurtma yo'q",
+    "start_delivering": "Oshxonadan oldim",
+    "delivered_confirm": "Mijozga yetkazdingizmi?",
+    "go_offline": "Ishni tugatish",
+    "go_online": "Ishni boshlash",
+    "today_delivered": "Bugun yetkazilgan",
+    "active_orders": "Faol buyurtmalar",
+    "no_calls": "Chaqiruv yo'q",
+    "calls_soon": "Chaqiruvlar tez orada ishga tushadi",
+    "no_history": "Tarix bo'sh",
+    "swipe_hint": "Yetkazish uchun bosib turing",
+    "holding": "Ushlab turing...",
+    "refresh": "Yangilash"
   },
   "admin": {
     "dashboard": "Boshqaruv paneli",
