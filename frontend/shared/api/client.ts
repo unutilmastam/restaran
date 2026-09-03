@@ -31,6 +31,7 @@ export interface ApiResult<T> {
 export interface ApiClient {
   get: <T>(path: string, init?: RequestInit) => Promise<ApiResult<T>>;
   post: <T>(path: string, body?: unknown, init?: RequestInit) => Promise<ApiResult<T>>;
+  put: <T>(path: string, body?: unknown, init?: RequestInit) => Promise<ApiResult<T>>;
   patch: <T>(path: string, body?: unknown, init?: RequestInit) => Promise<ApiResult<T>>;
   delete: <T>(path: string, init?: RequestInit) => Promise<ApiResult<T>>;
 }
@@ -99,6 +100,7 @@ export function createApiClient(options: ClientOptions): ApiClient {
   return {
     get: (path, init) => request('GET', path, undefined, init),
     post: (path, body, init) => request('POST', path, body, init),
+    put: (path, body, init) => request('PUT', path, body, init),
     patch: (path, body, init) => request('PATCH', path, body, init),
     delete: (path, init) => request('DELETE', path, undefined, init),
   };

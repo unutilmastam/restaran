@@ -56,6 +56,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Customer PWA manzili
+    |--------------------------------------------------------------------------
+    | NFC tagga yoziladigan URL shu yerdan quriladi (docs/06-SAAS.md §7):
+    |   {customer_url}/r/{slug}/t/{nfc_token}
+    |
+    | Bu backend manzili EMAS: customer alohida domenda turadi.
+    */
+    'customer_url' => env('APP_CUSTOMER_URL', env('APP_URL', 'http://localhost')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

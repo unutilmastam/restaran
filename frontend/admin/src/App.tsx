@@ -5,14 +5,26 @@ import { api } from './lib/api';
 import { useAuth, type AdminUser } from './lib/auth';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { LoginScreen } from './screens/LoginScreen';
+import { MenuScreen } from './screens/MenuScreen';
 import { OrdersScreen } from './screens/OrdersScreen';
+import { StaffScreen } from './screens/StaffScreen';
+import { TablesScreen } from './screens/TablesScreen';
 
-type Tab = 'dashboard' | 'orders';
+type Tab = 'dashboard' | 'orders' | 'menu' | 'tables' | 'staff';
+
+const TAB_KEY: Record<Tab, string> = {
+  dashboard: 'admin.dashboard',
+  orders: 'admin.orders',
+  menu: 'admin.menu',
+  tables: 'admin.tables',
+  staff: 'admin.waiters',
+};
 
 /**
- * PHASE 6 — dashboard va buyurtmalar. Menyu/stol/afitsant CRUD
- * ekranlari API bilan to'liq tayyor; UI ularga PHASE 6 davomida
- * qo'shiladi. Real-time PHASE 9 da (hozircha polling).
+ * PHASE 6 — to'liq admin panel.
+ *
+ * Real-time PHASE 9 da; hozircha dashboard va buyurtmalar polling
+ * bilan yangilanadi.
  */
 export default function App() {
   const { t, locale } = useTranslation();
@@ -50,17 +62,17 @@ export default function App() {
           <p className="text-xs text-slate-500">{user.name}</p>
         </div>
 
-        <nav className="flex gap-1">
-          {(['dashboard', 'orders'] as Tab[]).map((item) => (
+        <nav className="order-last flex w-full gap-1 overflow-x-auto [scrollbar-width:none] sm:order-none sm:w-auto [&::-webkit-scrollbar]:hidden">
+          {(Object.keys(TAB_KEY) as Tab[]).map((item) => (
             <button
               key={item}
               type="button"
               onClick={() => setTab(item)}
-              className={`h-10 rounded-xl px-4 text-sm font-medium transition ${
+              className={`h-10 shrink-0 rounded-xl px-4 text-sm font-medium transition ${
                 tab === item ? 'bg-slate-900 text-white' : 'text-slate-600 ring-1 ring-slate-200'
               }`}
             >
-              {t(item === 'dashboard' ? 'admin.dashboard' : 'admin.orders')}
+              {t(TAB_KEY[item])}
             </button>
           ))}
         </nav>
@@ -92,7 +104,13 @@ export default function App() {
         </button>
       </header>
 
-      <main>{tab === 'dashboard' ? <DashboardScreen /> : <OrdersScreen />}</main>
+      <main>
+        {tab === 'dashboard' && <DashboardScreen />}
+        {tab === 'orders' && <OrdersScreen />}
+        {tab === 'menu' && <MenuScreen />}
+        {tab === 'tables' && <TablesScreen />}
+        {tab === 'staff' && <StaffScreen />}
+      </main>
     </div>
   );
 }

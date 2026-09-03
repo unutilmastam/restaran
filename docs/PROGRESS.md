@@ -9,7 +9,7 @@
 | 3 | Customer PWA | ✅ Tugadi | NFC → guest count → menyu → cart · PWA · **55.6 KB gz** (chegara 100) · 14 backend + 14 frontend test |
 | 4 | Session tizimi | ✅ Tugadi | `SessionService`, `customer_token` (sha256), `session_devices`, NFC kirish logikasi · 15 feature + 3 concurrency test |
 | 5 | Order tizimi | ✅ Tugadi | Narx qayta hisoblash · idempotency · DRAFT · order lock · `order_number` · snapshot · status ekrani (polling 5s) · 22 feature + 3 concurrency test |
-| 6 | Admin panel | ✅ Tugadi | Sanctum auth · dashboard · order qabul · menyu/stol/xodim CRUD · ImageService (webp 800px) · limitlar · 30 test |
+| 6 | Admin panel | ✅ Tugadi | Sanctum auth · dashboard · order qabul · menyu/stol/xodim CRUD **UI bilan** · rasm yuklash (progress+preview) · QR kod · limitlar · 31 test |
 | 6.5 | Obuna nazorati | ⬜ Keyingi | `CheckSubscription`, grace period 3 kun |
 | 7 | Waiter PWA | ⬜ | |
 | 8 | Auto assignment | ⬜ | |
@@ -70,3 +70,7 @@
 | 2026-09-02 | Sanctum uchun **custom `PersonalAccessToken`** | `User` global scope'i token yechishga to'sqinlik qilardi (har so'rov 401) |
 | 2026-09-02 | Rasm **800px** (1200 emas) | Foydalanuvchi belgiladi |
 | 2026-09-02 | `errorText()` helperi | Tarmoq xatosida server matni yo'q — bo'sh qizil quti ko'rinardi |
+| 2026-09-02 | Modalda **sticky header + footer** | Mahsulot formasi telefon ekraniga sig'maydi; Saqlash tugmasi har doim ko'rinib tursin |
+| 2026-09-02 | Rasm yuklash **XHR** orqali, fetch emas | `fetch` upload progress bermaydi; sekin internetda ilova qotgandek tuyulardi |
+| 2026-09-02 | QR kutubxonasi **dinamik import** | 10 KB gz faqat QR modal ochilganda yuklanadi |
+| 2026-09-02 | `APP_CUSTOMER_URL` | NFC URL customer ilovasining domenidan quriladi, API domenidan emas |

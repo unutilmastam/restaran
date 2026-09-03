@@ -388,6 +388,18 @@ class AdminPanelTest extends TestCase
         $this->assertStringContainsString("/r/demo/t/{$token}", $response->json('data.table.nfc_url'));
     }
 
+    public function test_the_nfc_url_points_at_the_customer_app_not_the_api(): void
+    {
+        // docs/06-SAAS.md §7 — customer alohida domenda turadi.
+        config(['app.customer_url' => 'https://menu.itcode.uz']);
+
+        $url = $this->asOwner()->postJson('/api/v1/admin/tables', [
+            'number' => 7, 'capacity' => 4,
+        ])->json('data.table.nfc_url');
+
+        $this->assertStringStartsWith('https://menu.itcode.uz/r/demo/t/', $url);
+    }
+
     public function test_a_client_supplied_token_is_ignored(): void
     {
         // docs/01-ARCHITECTURE.md §4 — token har doim serverda.
