@@ -30,6 +30,11 @@ NFC asosida ishlaydigan restoran buyurtma boshqaruv tizimi.
 9. ❌ Hardcode qilingan matn (string) yozilmasin — hammasi i18n fayllarida.
 10. ❌ Mavjud kod o'chirib tashlanmasin — moslashtirilsin.
 11. ❌ Noaniq joyda **o'zicha yangi business rule o'ylab topilmasin** — savol berilsin.
+12. ❌ **"Yetkazildi" tugmasi bir bosishda ishlamasin.**
+    Afitsant uni faqat mijozga ovqatni yetkazgandan keyin bosadi,
+    oshxonadan olgan zahoti emas. Tasodifiy bosish = order noto'g'ri
+    yopiladi + afitsant bo'sh deb belgilanadi + yangi order tushadi.
+    Yechim: `HoldButton` (800 ms bosib turish).
 
 ---
 

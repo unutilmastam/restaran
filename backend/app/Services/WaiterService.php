@@ -22,7 +22,10 @@ use Illuminate\Support\Facades\DB;
  */
 class WaiterService
 {
-    public function __construct(private readonly OrderService $orders) {}
+    public function __construct(
+        private readonly OrderService $orders,
+        private readonly WaiterAssignmentService $assignment,
+    ) {}
 
     /** Menga biriktirilgan, hali yakunlanmagan orderlar. */
     public function activeOrders(User $waiter): Collection
@@ -79,8 +82,17 @@ class WaiterService
         $this->guard($waiter, $order);
 
         return DB::transaction(function () use ($waiter, $order): Order {
+            // ⚠️ Mutex ENG AVVAL olinadi — pastda navbatdan olish bor,
+            // ya'ni bu ham biriktirish transaction'i (izohi
+            // WaiterAssignmentService::lockForAssignment() da).
+            $this->assignment->lockForAssignment($waiter->restaurant_id);
+
             $updated = $this->orders->changeStatus($order, OrderStatus::DELIVERED);
             $this->syncStatus($waiter);
+
+            // Afitsant bo'shadi — navbatdagi ENG ESKI order unga tushadi
+            // (docs/01-ARCHITECTURE.md §7, 6-qadam).
+            $this->assignment->assignNextQueued($waiter->restaurant_id);
 
             return $updated;
         });

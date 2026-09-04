@@ -147,7 +147,14 @@
     "limit_reached": "Limitga yetdingiz ({{used}}/{{max}}). Kengaytirish uchun bog'laning.",
     "saved": "Saqlandi",
     "password_hint": "Bo'sh qoldirilsa o'zgarmaydi",
-    "table_name": "Nomi (ixtiyoriy)"
+    "table_name": "Nomi (ixtiyoriy)",
+    "all_waiters_busy": "Barcha afitsantlar band",
+    "queue": "Navbat",
+    "queued_orders": "Navbatda",
+    "free_waiters": "Bo'sh afitsantlar",
+    "new_orders": "Yangi buyurtmalar",
+    "auto_assign_hint": "Afitsant bo'shashi bilan avtomatik biriktiriladi",
+    "assigned_to": "Afitsant: {{name}}"
   },
   "table_status": {
     "available": "Bo'sh",

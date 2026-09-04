@@ -12,8 +12,8 @@
 | 6 | Admin panel | ✅ Tugadi | Sanctum auth · dashboard · order qabul · menyu/stol/xodim CRUD **UI bilan** · rasm yuklash (progress+preview) · QR kod · limitlar · 31 test |
 | 6.5 | Obuna nazorati | ⬜ Keyingi | `CheckSubscription`, grace period 3 kun |
 | 7 | Waiter PWA | ✅ Tugadi | PIN/parol auth · order oqimi · **HoldButton** (tasodifan bosilmaydi) · tarix · profil · PWA + push tayyorligi · 19 test (haqiqiy token) |
-| 8 | Auto assignment | ⬜ Keyingi | |
-| 9 | Real-time (Pusher) | ⬜ | |
+| 8 | Auto assignment | ✅ Tugadi | `WaiterAssignmentService` (docs/01 §7) · ACCEPT = bitta transactionda biriktirish · navbat (`WAITING_FOR_WAITER`) · DELIVERED → navbatdan avtomatik olish · admin panelda "Barcha afitsantlar band" · 17 feature + 3 concurrency test
+| 9 | Real-time (Pusher) | ⬜ Keyingi | |
 | 10 | Ovozli bildirishnoma | ⬜ | |
 | 11 | Afitsant chaqiruvi | ⬜ | |
 | 12 | To'lov / session yopish | ⬜ | |
@@ -77,3 +77,7 @@
 | 2026-09-02 | "Yetkazildi" — **bosib turish** (800 ms) | Afitsant telefonni bir qo'lda ushlab yuradi; tasodifan bosilsa buyurtma yetkazilgan deb belgilanadi va unga darhol yangisi biriktiriladi |
 | 2026-09-02 | `BUSY` statusini **qo'lda qo'yib bo'lmaydi** | U ochiq orderdan kelib chiqadi (docs/01 §3); ochiq orderi bor afitsant o'zini bo'sh deb e'lon qila olmaydi |
 | 2026-09-02 | Waiter testlari **faqat haqiqiy token bilan** | `actingAs()` PHASE 6 dagi Sanctum xatosini 30 ta testdan o'tkazib yuborgan edi |
+| 2026-09-04 | Biriktirish **MUTEX'i**: `restaurants` qatori `lockForUpdate()` | `TableStatusService` `tables` ga FAQAT status o'zgarganda yozadi — qulflash tartibi transactionlar orasida teskari bo'lib DEADLOCK (1213) berardi; parallel process testi topdi |
+| 2026-09-04 | `sortBy([fn, fn])` **ishlatilmaydi** | Laravel `sortByMany` callable'ni qiymat emas, komparator deb chaqiradi — afitsant tanlash tartibi jimgina buzilgan edi |
+| 2026-09-04 | ACCEPT javobi endi `ASSIGNED` yoki `WAITING_FOR_WAITER` | Admin bitta tugma bosadi; order "ACCEPTED" holatida hech kimga tegishli bo'lmay osilib qolmaydi |
+| 2026-09-04 | `/admin/orders?status=` **vergul bilan** bir nechta status qabul qiladi | Yangi buyurtmalar va navbat bitta so'rovda olinadi |

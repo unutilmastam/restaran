@@ -245,12 +245,16 @@ class AdminPanelTest extends TestCase
     {
         $order = $this->makeOrder();
 
+        // PHASE 8 dan boshlab ACCEPT bosilishi bilan biriktirish ham
+        // ishga tushadi. Bu restoranda afitsant yo'q — demak navbat.
+        // Biriktirishning o'zi: tests/Feature/Waiter/AssignmentTest.php.
         $this->asOwner()
             ->postJson("/api/v1/admin/orders/{$order->id}/accept")
             ->assertOk()
-            ->assertJsonPath('data.order.status', OrderStatus::ACCEPTED->value);
+            ->assertJsonPath('data.order.status', OrderStatus::WAITING_FOR_WAITER->value);
 
         RestaurantContext::allowCrossRestaurant();
+        // `accepted_at` baribir qo'yiladi — admin ko'rgan payt shu.
         $this->assertNotNull($order->refresh()->accepted_at);
     }
 

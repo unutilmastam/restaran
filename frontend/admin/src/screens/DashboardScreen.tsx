@@ -10,6 +10,8 @@ interface DashboardData {
     guests: number;
     average_check: number;
     pending_orders: number;
+    queued_orders: number;
+    free_waiters: number;
   };
   tables: {
     id: number;
@@ -53,11 +55,32 @@ export function DashboardScreen() {
 
   return (
     <div className="space-y-8 p-6">
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {/*
+        docs/01-ARCHITECTURE.md §7 — bo'sh afitsant qolmaganda orderlar
+        navbatda kutadi. Admin buni DARHOL ko'rishi kerak.
+      */}
+      {data.today.queued_orders > 0 && data.today.free_waiters === 0 && (
+        <p className="rounded-2xl bg-amber-100 px-4 py-3 text-sm font-semibold text-amber-900 ring-1 ring-amber-300">
+          {t('admin.all_waiters_busy')} · {t('admin.queued_orders')}:{' '}
+          {data.today.queued_orders}
+        </p>
+      )}
+
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         <Stat label={t('admin.revenue')} value={formatMoney(data.today.revenue, locale)} />
         <Stat label={t('admin.orders')} value={String(data.today.orders)} />
         <Stat label={t('admin.guests')} value={String(data.today.guests)} />
         <Stat label={t('admin.avg_check')} value={formatMoney(data.today.average_check, locale)} />
+        <Stat
+          label={t('admin.queued_orders')}
+          value={String(data.today.queued_orders)}
+          alert={data.today.queued_orders > 0}
+        />
+        <Stat
+          label={t('admin.free_waiters')}
+          value={String(data.today.free_waiters)}
+          alert={data.today.free_waiters === 0}
+        />
       </section>
 
       <section>
@@ -90,11 +113,23 @@ export function DashboardScreen() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, alert = false }: { label: string; value: string; alert?: boolean }) {
   return (
-    <div className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
-      <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="mt-1 text-xl font-semibold text-slate-900">{value}</p>
+    <div
+      className={`rounded-2xl p-4 ring-1 ${
+        alert ? 'bg-amber-50 ring-amber-300' : 'bg-white ring-slate-200'
+      }`}
+    >
+      <p
+        className={`text-xs uppercase tracking-wide ${alert ? 'text-amber-700' : 'text-slate-400'}`}
+      >
+        {label}
+      </p>
+      <p
+        className={`mt-1 text-xl font-semibold ${alert ? 'text-amber-900' : 'text-slate-900'}`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

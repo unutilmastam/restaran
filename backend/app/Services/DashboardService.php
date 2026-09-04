@@ -7,11 +7,14 @@ namespace App\Services;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\SessionStatus;
+use App\Enums\UserRole;
+use App\Enums\WaiterStatus;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Restaurant;
 use App\Models\Table;
 use App\Models\TableSession;
+use App\Models\User;
 use Illuminate\Support\Carbon;
 
 /**
@@ -57,6 +60,17 @@ class DashboardService
                 : 0.0,
             'pending_orders' => Order::query()
                 ->where('status', OrderStatus::PENDING)
+                ->count(),
+            // Navbatda turgan buyurtmalar — bo'sh afitsant topilmagani uchun
+            // ASSIGNED bo'la olmaganlar (docs/01-ARCHITECTURE.md §7).
+            'queued_orders' => Order::query()
+                ->where('status', OrderStatus::WAITING_FOR_WAITER)
+                ->count(),
+            // 0 bo'lsa admin panelda "Barcha afitsantlar band" ko'rinadi.
+            'free_waiters' => User::query()
+                ->where('role', UserRole::WAITER)
+                ->where('status', WaiterStatus::FREE)
+                ->where('is_active', true)
                 ->count(),
         ];
     }
